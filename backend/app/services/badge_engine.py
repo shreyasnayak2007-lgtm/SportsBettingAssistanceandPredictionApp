@@ -1,0 +1,1 @@
+#Badge trigger evaluation rules
