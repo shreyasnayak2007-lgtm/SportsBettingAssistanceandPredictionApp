@@ -15,7 +15,8 @@
   --accent: 43 89% 57%;
 }
 
-html.light {
+html.light,
+.light {
   --background: 210 40% 98%;
   --foreground: 222 47% 11%;
   --card: 0 0% 100%;
@@ -28,9 +29,28 @@ html.light {
   --accent: 221 83% 40%;
 }
 
+.dark,
+.light {
+  min-height: 100%;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+.dark .bg-background,
+.dark header {
+  background-color: hsl(var(--background)) !important;
+  color: hsl(var(--foreground));
+}
+
+.light .bg-background,
+.light header {
+  background-color: hsl(var(--background)) !important;
+  color: hsl(var(--foreground));
+}
+
 * { box-sizing: border-box; }
 html { background: hsl(var(--background)); scroll-behavior: smooth; }
-body { margin: 0; background: hsl(var(--background)); color: hsl(var(--foreground)); font-family: Arial, Helvetica, sans-serif; line-height: 1.5; }
+body { margin: 0; min-width: 320px; background: hsl(var(--background)); color: hsl(var(--foreground)); font-family: Arial, Helvetica, sans-serif; line-height: 1.5; }
 button, input, select { font: inherit; }
 button { cursor: pointer; }
 

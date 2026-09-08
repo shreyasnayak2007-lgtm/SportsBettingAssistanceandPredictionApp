@@ -91,7 +91,7 @@ export default function Dashboard() {
 
   return (
     <div className={`${isLightMode ? 'light' : 'dark'} min-h-screen bg-background text-foreground`}>
-      <header className="sticky top-0 z-30 border-b border-border/80 bg-background/95 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-border/80 bg-background backdrop-blur">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-8 px-4 sm:px-6">
           <button className="md:hidden" aria-label="Open navigation" onClick={() => setMobileOpen(true)}><Menu className="size-5" /></button>
           <div className="flex items-center gap-2 text-lg font-bold tracking-tight"><span className="inline-flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">L</span>LineMate<span className="text-muted-foreground">/</span><span className="text-sm font-medium text-muted-foreground">MLB</span><ChevronDown className="size-4 text-muted-foreground" /></div>
