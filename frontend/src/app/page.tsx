@@ -1,6 +1,5 @@
 'use client'
 
-import React, { useState } from 'react'
 import { Sidebar } from '@/components/navigation/Sidebar'
 import { TopNav } from '@/components/navigation/TopNav'
 import { GameCard } from '@/components/dashboard/GameCard'
