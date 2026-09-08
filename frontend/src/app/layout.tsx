@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Sports Betting Assistance Platform',
-  description: 'Real-time sports betting insights, analysis, and community',
+  title: 'Today’s MLB Matchups | LineMate',
+  description: 'A simple daily view of MLB matchups, markets, trends, and game summaries.',
 }
 
 export default function RootLayout({
