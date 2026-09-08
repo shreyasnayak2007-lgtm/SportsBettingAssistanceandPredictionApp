@@ -3,6 +3,19 @@
 @tailwind utilities;
 
 :root {
+  --background: 220 15% 6%;
+  --foreground: 0 0% 96%;
+  --card: 220 12% 10%;
+  --card-foreground: 0 0% 96%;
+  --muted: 220 10% 15%;
+  --muted-foreground: 220 8% 68%;
+  --border: 220 9% 24%;
+  --primary: 43 89% 57%;
+  --primary-foreground: 220 15% 6%;
+  --accent: 43 89% 57%;
+}
+
+html.light {
   --background: 210 40% 98%;
   --foreground: 222 47% 11%;
   --card: 0 0% 100%;
@@ -12,6 +25,7 @@
   --border: 214 32% 91%;
   --primary: 221 83% 40%;
   --primary-foreground: 210 40% 98%;
+  --accent: 221 83% 40%;
 }
 
 * { box-sizing: border-box; }
@@ -34,4 +48,26 @@ button { cursor: pointer; }
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: hsl(var(--muted)); }
-::-webkit-scrollbar-thumb { background: hsl(215 20% 75%); border-radius: 999px; }
+::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 999px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .games-today-grid > * { animation: matchup-enter 420ms ease-out both; }
+  .games-today-grid > *:nth-child(2) { animation-delay: 40ms; }
+  .games-today-grid > *:nth-child(3) { animation-delay: 80ms; }
+  .games-today-grid > *:nth-child(4) { animation-delay: 120ms; }
+  .games-today-grid > *:nth-child(5) { animation-delay: 160ms; }
+  .games-today-grid > *:nth-child(6) { animation-delay: 200ms; }
+}
+
+@keyframes matchup-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.team-logo-fallback {
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--muted));
+}
+
+.dark .light-mode-only { display: none; }
+.light .dark-mode-only { display: none; }

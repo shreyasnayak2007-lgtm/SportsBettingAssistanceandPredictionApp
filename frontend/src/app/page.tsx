@@ -14,6 +14,8 @@ import {
   Sparkles,
   TrendingUp,
   X,
+  Sun,
+  Moon,
 } from 'lucide-react'
 
 const games = [
@@ -24,6 +26,32 @@ const games = [
   { away: 'LAA', home: 'BOS', time: '10:45 PM', awayRecord: '60-82', homeRecord: '76-66', awayColor: 'bg-red-500', homeColor: 'bg-red-700', spread: 'BOS -1.5', total: '9.0', ml: 'BOS -160', note: 'Fenway games are averaging 10.1 runs this season.' },
   { away: 'COL', home: 'NYY', time: '11:05 PM', awayRecord: '54-88', homeRecord: '86-56', awayColor: 'bg-purple-600', homeColor: 'bg-slate-900', spread: 'NYY -2.5', total: '9.5', ml: 'NYY -245', note: 'New York leads the league in home runs at home.' },
 ]
+
+const teamLogos: Record<string, { label: string; background: string; foreground: string }> = {
+  CLE: { label: 'C', background: 'bg-red-600', foreground: 'text-white' },
+  BAL: { label: 'O', background: 'bg-orange-500', foreground: 'text-black' },
+  MIN: { label: 'TC', background: 'bg-indigo-700', foreground: 'text-white' },
+  DET: { label: 'D', background: 'bg-blue-800', foreground: 'text-white' },
+  HOU: { label: 'H', background: 'bg-orange-500', foreground: 'text-white' },
+  PHI: { label: 'P', background: 'bg-red-600', foreground: 'text-white' },
+  NYM: { label: 'NY', background: 'bg-orange-500', foreground: 'text-blue-950' },
+  MIA: { label: 'M', background: 'bg-teal-500', foreground: 'text-black' },
+  LAA: { label: 'A', background: 'bg-red-600', foreground: 'text-white' },
+  BOS: { label: 'B', background: 'bg-red-700', foreground: 'text-white' },
+  COL: { label: 'CR', background: 'bg-slate-900', foreground: 'text-white' },
+  NYY: { label: 'NY', background: 'bg-slate-900', foreground: 'text-white' },
+  TB: { label: 'TB', background: 'bg-blue-600', foreground: 'text-white' },
+  ATL: { label: 'A', background: 'bg-red-600', foreground: 'text-white' },
+  PIT: { label: 'P', background: 'bg-yellow-400', foreground: 'text-black' },
+  CWS: { label: 'S', background: 'bg-slate-900', foreground: 'text-white' },
+  ARI: { label: 'A', background: 'bg-red-700', foreground: 'text-white' },
+  KC: { label: 'KC', background: 'bg-blue-700', foreground: 'text-white' },
+}
+
+function TeamLogo({ team, size = 'size-14' }: { team: string; size?: string }) {
+  const logo = teamLogos[team] ?? { label: team.slice(0, 2), background: 'bg-muted', foreground: 'text-foreground' }
+  return <span aria-label={`${team} team logo`} className={`inline-flex ${size} items-center justify-center rounded-full border-2 border-white/20 text-sm font-black tracking-tight shadow-lg ${logo.background} ${logo.foreground}`}>{logo.label}</span>
+}
 
 const popularBets = [
   { player: 'T. Hernández', matchup: 'vs CIN', bet: 'Over 0.5 Hits', odds: '-133', hitRate: '8 of last 8', percent: '100%', reason: 'Strong recent form' },
@@ -44,6 +72,7 @@ export default function Dashboard() {
   const [stake, setStake] = useState('100')
   const [odds, setOdds] = useState('-110')
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [isLightMode, setIsLightMode] = useState(false)
   const [question, setQuestion] = useState('')
   const [answer, setAnswer] = useState('Ask about today\'s matchups, trends, or how to read a market.')
 
@@ -61,13 +90,13 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className={`${isLightMode ? 'light' : 'dark'} min-h-screen bg-background text-foreground`}>
       <header className="sticky top-0 z-30 border-b border-border/80 bg-background/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-8 px-4 sm:px-6">
           <button className="md:hidden" aria-label="Open navigation" onClick={() => setMobileOpen(true)}><Menu className="size-5" /></button>
           <div className="flex items-center gap-2 text-lg font-bold tracking-tight"><span className="inline-flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">L</span>LineMate<span className="text-muted-foreground">/</span><span className="text-sm font-medium text-muted-foreground">MLB</span><ChevronDown className="size-4 text-muted-foreground" /></div>
           <nav className="hidden items-center gap-6 text-sm font-medium md:flex"><a className="text-foreground" href="#today">Today</a><a className="text-muted-foreground hover:text-foreground" href="#trending">Trends</a><a className="text-muted-foreground hover:text-foreground" href="#tools">Tools</a></nav>
-          <div className="ml-auto flex items-center gap-3"><button className="hidden text-sm text-muted-foreground sm:block">Log in</button><button className="rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Start free trial</button></div>
+          <div className="ml-auto flex items-center gap-3"><button className="hidden text-sm text-muted-foreground sm:block">Log in</button><button aria-label={isLightMode ? 'Switch to dark mode' : 'Switch to light mode'} onClick={() => setIsLightMode((value) => !value)} className="inline-flex size-9 items-center justify-center rounded-lg border border-border text-muted-foreground transition hover:bg-muted">{isLightMode ? <Moon className="size-4" /> : <Sun className="size-4" />}</button><button className="rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground">Start free trial</button></div>
         </div>
       </header>
 
@@ -81,7 +110,7 @@ export default function Dashboard() {
 
         <section id="today" className="mb-10">
           <div className="mb-4 flex items-center justify-between"><div><h2 className="text-xl font-bold">Games today</h2><p className="text-sm text-muted-foreground">{games.length} matchups with consensus markets</p></div><button className="text-sm font-semibold text-primary">Show all <ArrowRight className="ml-1 inline size-4" /></button></div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{games.map((game) => <button key={`${game.away}-${game.home}`} onClick={() => setSelectedGame(game)} className={`rounded-xl border bg-card p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${selectedGame === game ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}><div className="mb-4 flex items-center justify-between text-xs text-muted-foreground"><span className="flex items-center gap-1"><Clock3 className="size-3.5" /> {game.time}</span><span>Preview</span></div><div className="flex items-center justify-between"><div className="flex items-center gap-2"><TeamMark team={game.away} color={game.awayColor} /><div><p className="font-semibold">{game.away}</p><p className="text-xs text-muted-foreground">{game.awayRecord}</p></div></div><span className="text-xs font-medium text-muted-foreground">@</span><div className="flex items-center gap-2 text-right"><div><p className="font-semibold">{game.home}</p><p className="text-xs text-muted-foreground">{game.homeRecord}</p></div><TeamMark team={game.home} color={game.homeColor} /></div></div><div className="mt-4 grid grid-cols-3 gap-2"><Market label="Spread" value={game.spread} /><Market label="O/U" value={game.total} /><Market label="ML" value={game.ml} /></div></button>)}</div>
+          <div className="games-today-grid grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{games.map((game) => <button key={`${game.away}-${game.home}`} onClick={() => setSelectedGame(game)} className={`min-h-[286px] rounded-2xl border bg-card p-5 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-xl ${selectedGame === game ? 'border-primary ring-2 ring-primary/25' : 'border-border'}`}><div className="mb-7 flex items-center justify-between text-xs text-muted-foreground"><span className="flex items-center gap-1"><Clock3 className="size-3.5" /> {game.time}</span><span className="rounded-full border border-border px-2.5 py-1">Preview</span></div><div className="flex items-center justify-between gap-3"><div className="flex min-w-0 flex-col items-center gap-3 text-center"><TeamLogo team={game.away} size="size-16" /><div><p className="font-bold">{game.away}</p><p className="text-xs text-muted-foreground">{game.awayRecord}</p></div></div><div className="flex flex-col items-center gap-1 text-center"><span className="text-xs font-bold uppercase tracking-widest text-primary">Today</span><span className="text-xs font-medium text-muted-foreground">at</span></div><div className="flex min-w-0 flex-col items-center gap-3 text-center"><TeamLogo team={game.home} size="size-16" /><div><p className="font-bold">{game.home}</p><p className="text-xs text-muted-foreground">{game.homeRecord}</p></div></div></div><div className="mt-8 grid grid-cols-3 gap-2"><Market label="Spread" value={game.spread} /><Market label="O/U" value={game.total} /><Market label="ML" value={game.ml} /></div></button>)}</div>
         </section>
 
         <section className="mb-10 grid gap-6 lg:grid-cols-[1.5fr_1fr]">

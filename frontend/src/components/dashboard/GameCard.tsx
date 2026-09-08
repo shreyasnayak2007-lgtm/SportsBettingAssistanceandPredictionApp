@@ -1,7 +1,6 @@
 import React from 'react'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
 import type { Game } from '@/lib/mock-data'
 
 interface GameCardProps {
@@ -66,9 +65,7 @@ export function GameCard({ game }: GameCardProps) {
           </div>
         </div>
 
-        <Button className="w-full mt-3" size="sm" variant="outline">
-          Place Bet
-        </Button>
+        <p className="mt-4 text-center text-xs text-muted-foreground">Analysis and market education only</p>
       </CardContent>
     </Card>
   )
