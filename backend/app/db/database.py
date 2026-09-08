@@ -1,7 +1,17 @@
+import os
+
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-DATABASE_URL = "postgresql+psycopg://username:password@localhost/sports_betting"
+
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL is not set in the .env file")
+
 
 engine = create_engine(DATABASE_URL)
 
@@ -12,3 +22,21 @@ SessionLocal = sessionmaker(
 )
 
 Base = declarative_base()
+
+
+def get_db():
+    db = SessionLocal()
+
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+if __name__ == "__main__":
+    try:
+        with engine.connect():
+            print("Successfully connected to PostgreSQL!")
+    except Exception as e:
+        print("Database connection failed:")
+        print(e)
