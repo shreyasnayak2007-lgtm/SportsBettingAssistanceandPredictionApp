@@ -27,30 +27,30 @@ const games = [
   { away: 'COL', home: 'NYY', time: '11:05 PM', awayRecord: '54-88', homeRecord: '86-56', awayColor: 'bg-purple-600', homeColor: 'bg-slate-900', spread: 'NYY -2.5', total: '9.5', ml: 'NYY -245', note: 'New York leads the league in home runs at home.' },
 ]
 
-const teamLogos: Record<string, { label: string; background: string; foreground: string }> = {
-  CLE: { label: 'C', background: 'bg-red-600', foreground: 'text-white' },
-  BAL: { label: 'O', background: 'bg-orange-500', foreground: 'text-black' },
-  MIN: { label: 'TC', background: 'bg-indigo-700', foreground: 'text-white' },
-  DET: { label: 'D', background: 'bg-blue-800', foreground: 'text-white' },
-  HOU: { label: 'H', background: 'bg-orange-500', foreground: 'text-white' },
-  PHI: { label: 'P', background: 'bg-red-600', foreground: 'text-white' },
-  NYM: { label: 'NY', background: 'bg-orange-500', foreground: 'text-blue-950' },
-  MIA: { label: 'M', background: 'bg-teal-500', foreground: 'text-black' },
-  LAA: { label: 'A', background: 'bg-red-600', foreground: 'text-white' },
-  BOS: { label: 'B', background: 'bg-red-700', foreground: 'text-white' },
-  COL: { label: 'CR', background: 'bg-slate-900', foreground: 'text-white' },
-  NYY: { label: 'NY', background: 'bg-slate-900', foreground: 'text-white' },
-  TB: { label: 'TB', background: 'bg-blue-600', foreground: 'text-white' },
-  ATL: { label: 'A', background: 'bg-red-600', foreground: 'text-white' },
-  PIT: { label: 'P', background: 'bg-yellow-400', foreground: 'text-black' },
-  CWS: { label: 'S', background: 'bg-slate-900', foreground: 'text-white' },
-  ARI: { label: 'A', background: 'bg-red-700', foreground: 'text-white' },
-  KC: { label: 'KC', background: 'bg-blue-700', foreground: 'text-white' },
+const teamLogos: Record<string, { label: string; url: string }> = {
+  CLE: { label: 'Cleveland Guardians', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/114.svg' },
+  BAL: { label: 'Baltimore Orioles', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/110.svg' },
+  MIN: { label: 'Minnesota Twins', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/142.svg' },
+  DET: { label: 'Detroit Tigers', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/116.svg' },
+  HOU: { label: 'Houston Astros', url: 'https://www.mlbstatic.com/team-logos/team-primary-on-light/117.svg' },
+  PHI: { label: 'Philadelphia Phillies', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/143.svg' },
+  NYM: { label: 'New York Mets', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/121.svg' },
+  MIA: { label: 'Miami Marlins', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/146.svg' },
+  LAA: { label: 'Los Angeles Angels', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/108.svg' },
+  BOS: { label: 'Boston Red Sox', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/111.svg' },
+  COL: { label: 'Colorado Rockies', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/115.svg' },
+  NYY: { label: 'New York Yankees', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/147.svg' },
+  TB: { label: 'Tampa Bay Rays', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/139.svg' },
+  ATL: { label: 'Atlanta Braves', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/144.svg' },
+  PIT: { label: 'Pittsburgh Pirates', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/134.svg' },
+  CWS: { label: 'Chicago White Sox', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/145.svg' },
+  ARI: { label: 'Arizona Diamondbacks', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/109.svg' },
+  KC: { label: 'Kansas City Royals', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/118.svg' },
 }
 
 function TeamLogo({ team, size = 'size-14' }: { team: string; size?: string }) {
-  const logo = teamLogos[team] ?? { label: team.slice(0, 2), background: 'bg-muted', foreground: 'text-foreground' }
-  return <span aria-label={`${team} team logo`} className={`inline-flex ${size} items-center justify-center rounded-full border-2 border-white/20 text-sm font-black tracking-tight shadow-lg ${logo.background} ${logo.foreground}`}>{logo.label}</span>
+  const logo = teamLogos[team]
+  return logo ? <img src={logo.url} alt={`${logo.label} logo`} className={`${size} object-contain drop-shadow-lg`} /> : <span aria-label={`${team} team logo`} className={`inline-flex ${size} items-center justify-center rounded-full bg-muted text-sm font-black text-foreground`}>{team.slice(0, 2)}</span>
 }
 
 const popularBets = [
@@ -109,7 +109,7 @@ export default function Dashboard() {
         </section>
 
         <section id="today" className="mb-10">
-          <div className="mb-4 flex items-center justify-between"><div><h2 className="text-xl font-bold">Games today</h2><p className="text-sm text-muted-foreground">{games.length} matchups with consensus markets</p></div><button className="text-sm font-semibold text-primary">Show all <ArrowRight className="ml-1 inline size-4" /></button></div>
+          <div className="mb-4 flex items-center justify-between"><div><h2 className="text-xl font-bold">Games today</h2><p className="text-sm text-muted-foreground">{games.length} matchups with consensus markets · Official team marks from MLB.com</p></div><button className="text-sm font-semibold text-primary">Show all <ArrowRight className="ml-1 inline size-4" /></button></div>
           <div className="games-today-grid grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{games.map((game) => <button key={`${game.away}-${game.home}`} onClick={() => setSelectedGame(game)} className={`min-h-[286px] rounded-2xl border bg-card p-5 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-xl ${selectedGame === game ? 'border-primary ring-2 ring-primary/25' : 'border-border'}`}><div className="mb-7 flex items-center justify-between text-xs text-muted-foreground"><span className="flex items-center gap-1"><Clock3 className="size-3.5" /> {game.time}</span><span className="rounded-full border border-border px-2.5 py-1">Preview</span></div><div className="flex items-center justify-between gap-3"><div className="flex min-w-0 flex-col items-center gap-3 text-center"><TeamLogo team={game.away} size="size-16" /><div><p className="font-bold">{game.away}</p><p className="text-xs text-muted-foreground">{game.awayRecord}</p></div></div><div className="flex flex-col items-center gap-1 text-center"><span className="text-xs font-bold uppercase tracking-widest text-primary">Today</span><span className="text-xs font-medium text-muted-foreground">at</span></div><div className="flex min-w-0 flex-col items-center gap-3 text-center"><TeamLogo team={game.home} size="size-16" /><div><p className="font-bold">{game.home}</p><p className="text-xs text-muted-foreground">{game.homeRecord}</p></div></div></div><div className="mt-8 grid grid-cols-3 gap-2"><Market label="Spread" value={game.spread} /><Market label="O/U" value={game.total} /><Market label="ML" value={game.ml} /></div></button>)}</div>
         </section>
 
