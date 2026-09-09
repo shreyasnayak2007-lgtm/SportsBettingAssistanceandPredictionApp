@@ -46,8 +46,19 @@ html.light,
 .dark .bg-card,
 .dark .bg-muted,
 .dark [class*="bg-muted/"] {
-  background-color: #ffffff !important;
-  color: #000000 !important;
+  background-color: #050505 !important;
+  color: #ffffff !important;
+}
+
+.dark .games-today-card {
+  background-color: #272727 !important;
+  color: #ffffff !important;
+}
+
+.dark .games-today-card .bg-muted,
+.dark .games-today-card [class*="bg-muted/"] {
+  background-color: #303030 !important;
+  color: #ffffff !important;
 }
 
 .dark .text-muted-foreground,
@@ -59,13 +70,22 @@ html.light,
 .dark .bg-card .text-foreground,
 .dark .bg-muted .text-foreground,
 .dark [class*="bg-muted/"] .text-foreground {
-  color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.dark .games-today-card .text-foreground,
+.dark .games-today-card .text-muted-foreground {
+  color: #ffffff !important;
 }
 
 .dark .bg-card .border-border,
 .dark .bg-muted .border-border,
 .dark [class*="bg-muted/"] .border-border {
-  border-color: #d7d7d7 !important;
+  border-color: #303030 !important;
+}
+
+.dark .games-today-card .border-border {
+  border-color: #505050 !important;
 }
 
 .light .bg-background,
