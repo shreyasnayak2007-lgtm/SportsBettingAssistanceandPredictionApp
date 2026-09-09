@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { GameDetailView } from '@/components/dashboard/GameDetailView'
 import {
   ArrowRight,
   BarChart3,
@@ -69,6 +70,7 @@ function Market({ label, value }: { label: string; value: string }) {
 
 export default function Dashboard() {
   const [selectedGame, setSelectedGame] = useState(games[0])
+  const [detailGame, setDetailGame] = useState<(typeof games)[number] | null>(null)
   const [stake, setStake] = useState('100')
   const [odds, setOdds] = useState('-110')
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -87,6 +89,10 @@ export default function Dashboard() {
     if (!question.trim()) return
     setAnswer(`For ${question.trim()}, start with the matchup context, then compare the market price with the underlying trend. This is a mock analysis for now.`)
     setQuestion('')
+  }
+
+  if (detailGame) {
+    return <div className={`${isLightMode ? 'light' : 'dark'} min-h-screen bg-background text-foreground`}><GameDetailView game={detailGame} teamLogos={teamLogos} onBack={() => setDetailGame(null)} /></div>
   }
 
   return (
@@ -110,7 +116,7 @@ export default function Dashboard() {
 
         <section id="today" className="mb-10">
           <div className="mb-4 flex items-center justify-between"><div><h2 className="text-xl font-bold">Games today</h2><p className="text-sm text-muted-foreground">{games.length} matchups with consensus markets · Official team marks from MLB.com</p></div><button className="text-sm font-semibold text-primary">Show all <ArrowRight className="ml-1 inline size-4" /></button></div>
-          <div className="games-today-grid grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{games.map((game) => <button key={`${game.away}-${game.home}`} onClick={() => setSelectedGame(game)} className={`games-today-card min-h-[286px] rounded-2xl border bg-card p-5 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-xl ${selectedGame === game ? 'border-primary ring-2 ring-primary/25' : 'border-border'}`}><div className="mb-7 flex items-center justify-between text-xs text-muted-foreground"><span className="flex items-center gap-1"><Clock3 className="size-3.5" /> {game.time}</span><span className="rounded-full border border-border px-2.5 py-1">Preview</span></div><div className="flex items-center justify-between gap-3"><div className="flex min-w-0 flex-col items-center gap-3 text-center"><TeamLogo team={game.away} size="size-16" /><div><p className="font-bold">{game.away}</p><p className="text-xs text-muted-foreground">{game.awayRecord}</p></div></div><div className="flex flex-col items-center gap-1 text-center"><span className="text-xs font-bold uppercase tracking-widest text-primary">Today</span><span className="text-xs font-medium text-muted-foreground">at</span></div><div className="flex min-w-0 flex-col items-center gap-3 text-center"><TeamLogo team={game.home} size="size-16" /><div><p className="font-bold">{game.home}</p><p className="text-xs text-muted-foreground">{game.homeRecord}</p></div></div></div><div className="mt-8 grid grid-cols-3 gap-2"><Market label="Spread" value={game.spread} /><Market label="O/U" value={game.total} /><Market label="ML" value={game.ml} /></div></button>)}</div>
+          <div className="games-today-grid grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{games.map((game) => <button key={`${game.away}-${game.home}`} onClick={() => { setSelectedGame(game); setDetailGame(game) }} className={`games-today-card min-h-[286px] rounded-2xl border bg-card p-5 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-xl ${selectedGame === game ? 'border-primary ring-2 ring-primary/25' : 'border-border'}`}><div className="mb-7 flex items-center justify-between text-xs text-muted-foreground"><span className="flex items-center gap-1"><Clock3 className="size-3.5" /> {game.time}</span><span className="rounded-full border border-border px-2.5 py-1">Preview</span></div><div className="flex items-center justify-between gap-3"><div className="flex min-w-0 flex-col items-center gap-3 text-center"><TeamLogo team={game.away} size="size-16" /><div><p className="font-bold">{game.away}</p><p className="text-xs text-muted-foreground">{game.awayRecord}</p></div></div><div className="flex flex-col items-center gap-1 text-center"><span className="text-xs font-bold uppercase tracking-widest text-primary">Today</span><span className="text-xs font-medium text-muted-foreground">at</span></div><div className="flex min-w-0 flex-col items-center gap-3 text-center"><TeamLogo team={game.home} size="size-16" /><div><p className="font-bold">{game.home}</p><p className="text-xs text-muted-foreground">{game.homeRecord}</p></div></div></div><div className="mt-8 grid grid-cols-3 gap-2"><Market label="Spread" value={game.spread} /><Market label="O/U" value={game.total} /><Market label="ML" value={game.ml} /></div></button>)}</div>
         </section>
 
         <section className="mb-10 grid gap-6 lg:grid-cols-[1.5fr_1fr]">
