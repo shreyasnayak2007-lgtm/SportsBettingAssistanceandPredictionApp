@@ -3,17 +3,17 @@
 @tailwind utilities;
 
 :root {
-  --background: 220 15% 6%;
-  --foreground: 0 0% 96%;
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 0%;
-  --muted: 0 0% 100%;
-  --muted-foreground: 142 71% 35%;
-  --border: 220 9% 24%;
-  --primary: 43 89% 57%;
-  --primary-foreground: 220 15% 6%;
-  --accent: 142 71% 35%;
-  --green: 142 71% 35%;
+  --background: 240 12% 5%;
+  --foreground: 42 18% 94%;
+  --card: 240 10% 9%;
+  --card-foreground: 42 18% 94%;
+  --muted: 232 12% 14%;
+  --muted-foreground: 224 10% 70%;
+  --border: 225 11% 22%;
+  --primary: 43 84% 62%;
+  --primary-foreground: 240 12% 5%;
+  --accent: 142 54% 46%;
+  --green: 142 54% 46%;
 }
 
 html.light,
@@ -46,46 +46,50 @@ html.light,
 .dark .bg-card,
 .dark .bg-muted,
 .dark [class*="bg-muted/"] {
-  background-color: #050505 !important;
-  color: #ffffff !important;
+  background-color: hsl(var(--card)) !important;
+  color: hsl(var(--card-foreground)) !important;
 }
 
 .dark .games-today-card {
-  background-color: #272727 !important;
-  color: #ffffff !important;
+  background: linear-gradient(145deg, #242936 0%, #1b1f2a 100%) !important;
+  color: #f7f4ec !important;
+  box-shadow: 0 14px 34px rgb(0 0 0 / 22%);
 }
 
 .dark .games-today-card .bg-muted,
 .dark .games-today-card [class*="bg-muted/"] {
-  background-color: #303030 !important;
-  color: #ffffff !important;
+  background-color: #303644 !important;
+  color: #f7f4ec !important;
 }
 
-.dark .text-muted-foreground,
+.dark .text-muted-foreground {
+  color: #aeb6c5 !important;
+}
+
 .dark .text-blue-950,
 .dark .text-indigo-700 {
-  color: #16a34a !important;
+  color: #6fbe86 !important;
 }
 
 .dark .bg-card .text-foreground,
 .dark .bg-muted .text-foreground,
 .dark [class*="bg-muted/"] .text-foreground {
-  color: #ffffff !important;
+  color: #f7f4ec !important;
 }
 
 .dark .games-today-card .text-foreground,
 .dark .games-today-card .text-muted-foreground {
-  color: #ffffff !important;
+  color: #f7f4ec !important;
 }
 
 .dark .bg-card .border-border,
 .dark .bg-muted .border-border,
 .dark [class*="bg-muted/"] .border-border {
-  border-color: #303030 !important;
+  border-color: #2d3442 !important;
 }
 
 .dark .games-today-card .border-border {
-  border-color: #505050 !important;
+  border-color: #454d5d !important;
 }
 
 .light .bg-background,
