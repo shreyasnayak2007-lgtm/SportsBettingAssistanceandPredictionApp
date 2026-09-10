@@ -1,5 +1,6 @@
-from datetime import date
+from datetime import date, datetime
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import httpx
 
@@ -31,8 +32,8 @@ def _get_statcast_stats(game_date: str) -> dict[str, Any]:
 
 
 def get_today_games() -> list[dict[str, Any]]:
-    today = date.today().isoformat()
-    params = {'sportId': 1, 'date': today, 'hydrate': 'team'}
+    today = datetime.now(ZoneInfo('America/New_York')).date().isoformat()
+    params = {'sportId': 1, 'date': today, 'hydrate': 'team,linescore'}
     with httpx.Client(timeout=15) as client:
         payload = client.get(MLB_SCHEDULE_URL, params=params).raise_for_status()
         data = payload.json()
