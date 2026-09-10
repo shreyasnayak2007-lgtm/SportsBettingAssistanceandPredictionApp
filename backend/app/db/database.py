@@ -4,39 +4,20 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = os.getenv('DATABASE_URL') or os.getenv('POSTGRES_URL')
+engine = create_engine(DATABASE_URL, pool_pre_ping=True) if DATABASE_URL else None
 
-if not DATABASE_URL:
-    raise ValueError("DATABASE_URL is not set in the .env file")
-
-
-engine = create_engine(DATABASE_URL)
-
-SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine
-)
-
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
 def get_db():
+    if engine is None:
+        raise RuntimeError('DATABASE_URL or POSTGRES_URL is required for database-backed routes')
     db = SessionLocal()
-
     try:
         yield db
     finally:
         db.close()
-
-
-if __name__ == "__main__":
-    try:
-        with engine.connect():
-            print("Successfully connected to PostgreSQL!")
-    except Exception as e:
-        print("Database connection failed:")
-        print(e)
