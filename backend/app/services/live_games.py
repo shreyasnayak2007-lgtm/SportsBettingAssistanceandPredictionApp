@@ -10,18 +10,24 @@ def _team_code(team: dict[str, Any]) -> str:
     return str(team.get('abbreviation') or team.get('teamName') or team.get('name') or '')
 
 
-def _get_statcast_stats(game_date: str) -> dict[str, int]:
+def _get_statcast_stats(game_date: str) -> dict[str, Any]:
     try:
         from pybaseball import statcast
         data = statcast(game_date, game_date)
+        if data.empty:
+            return {'source': 'unavailable', 'pitches': 0, 'strikeouts': 0, 'walks': 0, 'ballsInPlay': 0, 'sample': []}
+        index_fields = ['game_pk', 'game_date', 'home_team', 'away_team', 'inning', 'inning_topbot', 'at_bat_number', 'pitch_number', 'pitcher', 'batter', 'pitch_type', 'release_speed', 'balls', 'strikes', 'events', 'description', 'launch_speed', 'launch_angle', 'estimated_woba']
+        sample = data[index_fields].head(5).where(data[index_fields].notna(), None).to_dict(orient='records')
         return {
+            'source': 'real',
             'pitches': int(len(data)),
-            'strikeouts': int(data.get('events', '').astype(str).str.contains('strikeout', case=False).sum()) if len(data) else 0,
-            'walks': int(data.get('events', '').astype(str).str.contains('walk', case=False).sum()) if len(data) else 0,
-            'ballsInPlay': int(data.get('description', '').astype(str).str.contains('hit_into_play', case=False).sum()) if len(data) else 0,
+            'strikeouts': int(data['events'].fillna('').astype(str).str.contains('strikeout', case=False).sum()),
+            'walks': int(data['events'].fillna('').astype(str).str.contains('walk', case=False).sum()),
+            'ballsInPlay': int(data['description'].fillna('').astype(str).str.contains('hit_into_play', case=False).sum()),
+            'sample': sample,
         }
     except Exception:
-        return {'pitches': 0, 'strikeouts': 0, 'walks': 0, 'ballsInPlay': 0}
+        return {'source': 'unavailable', 'pitches': 0, 'strikeouts': 0, 'walks': 0, 'ballsInPlay': 0, 'sample': []}
 
 
 def get_today_games() -> list[dict[str, Any]]:
@@ -50,6 +56,6 @@ def get_today_games() -> list[dict[str, Any]]:
                 'homeScore': game.get('teams', {}).get('home', {}).get('score', 0),
                 'time': game.get('gameDate', today),
                 'source': 'real',
-                'stats': {**statcast_stats, 'source': 'real' if statcast_stats['pitches'] else 'mock'},
+                'stats': statcast_stats,
             })
     return games

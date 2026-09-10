@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? (typeof window === 'undefined' ? 'http://localhost:8000' : '')
 
 export type LiveGame = {
   gamePk: number
@@ -17,7 +17,8 @@ export type LiveGame = {
     strikeouts: number
     walks: number
     ballsInPlay: number
-    source: 'real' | 'mock'
+    source: 'real' | 'mock' | 'unavailable'
+    sample: Array<Record<string, unknown>>
   }
 }
 
@@ -29,5 +30,5 @@ export async function fetchTodayGames(): Promise<LiveGame[]> {
   const payload = await response.json()
   const records = Array.isArray(payload) ? payload : payload.data ?? payload.games
   if (!Array.isArray(records)) throw new ApiError('Games API returned an unexpected response')
-  return records.map((record) => ({ ...record, source: 'real' as const, stats: { pitches: 0, strikeouts: 0, walks: 0, ballsInPlay: 0, source: 'mock' as const, ...record.stats } }))
+  return records.map((record) => ({ ...record, source: 'real' as const, stats: { pitches: 0, strikeouts: 0, walks: 0, ballsInPlay: 0, source: 'unavailable' as const, sample: [], ...record.stats } }))
 }

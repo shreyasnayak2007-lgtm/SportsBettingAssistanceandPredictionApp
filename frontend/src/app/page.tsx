@@ -73,7 +73,7 @@ function Market({ label, value }: { label: string; value: string }) {
 export default function Dashboard() {
   const { data: liveGames, error: liveGamesError } = useSWR('today-games', fetchTodayGames, { revalidateOnFocus: false })
   const hasRealGames = Boolean(liveGames?.length)
-  const displayGames = hasRealGames ? liveGames!.map((game) => ({ away: game.awayTeam, home: game.homeTeam, time: game.time, awayRecord: 'Real data', homeRecord: 'Real data', awayColor: 'bg-slate-500', homeColor: 'bg-slate-700', spread: 'Mock data', total: 'Mock data', ml: 'Mock data', note: `Real MLB schedule data. Statcast fields: ${game.stats.source === 'real' ? 'real' : 'mock'}.` })) : games
+  const displayGames = hasRealGames ? liveGames!.map((game) => ({ away: game.awayTeam, home: game.homeTeam, time: game.time, awayRecord: 'Real data', homeRecord: 'Real data', awayColor: 'bg-slate-500', homeColor: 'bg-slate-700', spread: 'Mock data', total: 'Mock data', ml: 'Mock data', note: `Real MLB schedule data. Statcast: ${game.stats.source}. ${game.stats.pitches ? `${game.stats.pitches} indexed pitches, ${game.stats.strikeouts} strikeouts, ${game.stats.walks} walks.` : 'No pitch data exists yet for this upcoming game.'}`, stats: game.stats })) : games
   const [selectedGame, setSelectedGame] = useState(games[0])
   const [detailGame, setDetailGame] = useState<(typeof games)[number] | null>(null)
   const [stake, setStake] = useState('100')
