@@ -32,7 +32,9 @@ class Player(Base):
     first_name = Column(String(50))
     last_name = Column(String(50))
     position = Column(String(20))
-
+    # In backend/app/db/models.py
+    jersey_number = Column(Integer, nullable=True)
+    handedness = Column(String(1), nullable=True)  # L, R, S
     team_id = Column(Integer, ForeignKey("teams.id"), nullable=True)
 
 
