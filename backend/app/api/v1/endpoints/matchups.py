@@ -12,9 +12,9 @@ from pydantic import BaseModel
 
 from app.db.database import get_db
 from app.db.models import Game, Player, Team, StatcastPitch
-from app.services.statscast import get_bvp_stats, get_rolling_trends
-from app.services.badge_engine import evaluate_badges
-from app.services.pybaseball_service import get_park_factor
+#from app.services.statscast import get_bvp_stats, get_rolling_trends
+#from app.services.badge_engine import evaluate_badges
+#from app.services.pybaseball_service import get_park_factor
 
 router = APIRouter()
 
