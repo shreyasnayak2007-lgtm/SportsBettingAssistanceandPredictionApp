@@ -15,10 +15,24 @@ class Team(Base):
     __tablename__ = "teams"
 
     id = Column(Integer, primary_key=True, index=True)
-    abbreviation = Column(String(5), unique=True, nullable=False, index=True)
+
+    mlb_team_id = Column(
+        Integer,
+        unique=True,
+        nullable=False,
+        index=True
+    )
+
+    abbreviation = Column(
+        String(5),
+        unique=True,
+        nullable=False,
+        index=True
+    )
+
     name = Column(String(100), nullable=False)
-    league = Column(String(10))
-    division = Column(String(20))
+    league = Column(String(50))
+    division = Column(String(50))
 
 
 class Player(Base):

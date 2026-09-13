@@ -1,4 +1,3 @@
-# backend/app/main.py
 """
 FastAPI application for MLB player props analytics platform.
 Updated to include matchups endpoint.
@@ -10,7 +9,8 @@ from fastapi.middleware.cors import CORSMiddleware
 # Import all routers
 from app.api.v1.endpoints.games import router as games_router
 from app.api.v1.endpoints.statcast import router as statcast_router
-from app.api.v1.endpoints.matchups import router as matchups_router  # NEW
+from app.api.v1.endpoints.matchups import router as matchups_router
+from app.api.v1.endpoints.teams import router as teams_router
 
 app = FastAPI(
     title='MLB Player Props Analytics API',
@@ -56,6 +56,12 @@ app.include_router(
     tags=['Matchups']
 )
 
+app.include_router(
+    teams_router,
+    prefix="/api/v1",
+    tags=['Teams']
+)
+
 # ============================================================
 # HEALTH CHECK ENDPOINTS
 # ============================================================
@@ -70,6 +76,7 @@ def root():
             'games': '/api/v1/games/today',
             'matchups': '/api/v1/matchups/{game_pk}',
             'statcast': '/api/v1/statcast/games/{game_pk}',
+            'teams': '/api/v1/teams',
             'docs': '/docs'
         }
     }
