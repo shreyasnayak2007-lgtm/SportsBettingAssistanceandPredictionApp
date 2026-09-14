@@ -58,6 +58,16 @@ def get_today_games(
             "season": game.season,
             "status": game.status,
 
+            "game_datetime": game.game_datetime,
+
+            "current_inning": game.current_inning,
+            "inning_state": game.inning_state,
+            "outs": game.outs,
+
+            "runner_on_first": bool(game.runner_on_first),
+            "runner_on_second": bool(game.runner_on_second),
+            "runner_on_third": bool(game.runner_on_third),
+
             "away_team": {
                 "id": away_team.id,
                 "mlb_team_id": away_team.mlb_team_id,
@@ -73,6 +83,7 @@ def get_today_games(
                 "name": home_team.name,
                 "score": game.home_score,
             },
+
         })
 
     return games

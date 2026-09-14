@@ -22,6 +22,7 @@ def get_mlb_games(start_date: str, end_date: str):
             "sportId": 1,
             "startDate": start_date,
             "endDate": end_date,
+            "hydrate": "linescore",
         },
         timeout=10
     )

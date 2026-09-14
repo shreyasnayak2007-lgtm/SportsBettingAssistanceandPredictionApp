@@ -4,6 +4,8 @@ from sqlalchemy import (
     String,
     Float,
     Date,
+    DateTime,
+    Boolean,
     ForeignKey,
     UniqueConstraint
 )
@@ -57,19 +59,65 @@ class Game(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
-    # MLB's unique ID for the game
-    game_pk = Column(Integer, unique=True, nullable=False, index=True)
+    game_pk = Column(
+        Integer,
+        unique=True,
+        nullable=False,
+        index=True
+    )
 
-    game_date = Column(Date, nullable=False, index=True)
-    season = Column(Integer, nullable=False)
+    game_date = Column(
+        Date,
+        nullable=False,
+        index=True
+    )
 
-    home_team_id = Column(Integer, ForeignKey("teams.id"))
-    away_team_id = Column(Integer, ForeignKey("teams.id"))
+    # Exact scheduled start time from MLB.
+    # Stored with timezone information.
+    game_datetime = Column(
+        DateTime(timezone=True),
+        nullable=True
+    )
+
+    season = Column(
+        Integer,
+        nullable=False
+    )
+
+    home_team_id = Column(
+        Integer,
+        ForeignKey("teams.id")
+    )
+
+    away_team_id = Column(
+        Integer,
+        ForeignKey("teams.id")
+    )
 
     home_score = Column(Integer)
     away_score = Column(Integer)
 
     status = Column(String(30))
+
+    # Live game information
+    current_inning = Column(Integer)
+    inning_state = Column(String(20))
+    outs = Column(Integer)
+
+    runner_on_first = Column(
+        Boolean,
+        default=False
+    )
+
+    runner_on_second = Column(
+        Boolean,
+        default=False
+    )
+
+    runner_on_third = Column(
+        Boolean,
+        default=False
+    )
 
 
 class StatcastPitch(Base):
