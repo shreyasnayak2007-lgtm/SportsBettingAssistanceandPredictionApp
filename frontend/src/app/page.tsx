@@ -19,6 +19,10 @@ import {
   Moon,
 } from 'lucide-react'
 
+import { fetchTodayGames } from '@/lib/api'
+import type { LiveGame } from '@/lib/api'
+import { mapBackendGamesList } from '@/lib/mappers'
+
 const teamLogos: Record<string, { label: string; url: string }> = {
   CLE: { label: 'Cleveland Guardians', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/114.svg' },
   BAL: { label: 'Baltimore Orioles', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/110.svg' },
@@ -79,7 +83,7 @@ function Market({ label, value }: { label: string; value: string }) {
 }
 
 export default function Dashboard() {
-  const [games, setGames] = useState([])
+  const [games, setGames] = useState<LiveGame[]>([])
   const [loading, setLoading] = useState(true)
   const [detailGame, setDetailGame] = useState<any>(null)
   const [stake, setStake] = useState('100')
@@ -90,25 +94,27 @@ export default function Dashboard() {
   const [answer, setAnswer] = useState('Ask about today\'s matchups, trends, or how to read a market.')
 
   // Fetch real games on mount
-  useEffect(() => {
-  async function loadGames() {
+useEffect(() => {
+  async function fetchData() {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/games/today`,
-        { cache: 'no-store' }
-      )
-      const data = await response.json()
-      setGames(data.data || [])
-    } catch (err) {
-      console.error('Failed to load games:', err)
+      const response = await fetch('/api/games')
+      if (response.ok) {
+        const rawData = await response.json()
+        // Extract array whether returned as direct array or nested object
+        const gameList = Array.isArray(rawData) ? rawData : rawData.games || rawData.data || []
+        const mappedGames = mapBackendGamesList(gameList)
+        setGames(mappedGames)
+      } else {
+        console.error('API response error status:', response.status)
+      }
+    } catch (error) {
+      console.error('Failed to load games:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
-  loadGames()
-
-  // Refresh every 10 seconds
-  const interval = setInterval(loadGames, 10000)
-  return () => clearInterval(interval)
+  fetchData()
 }, [])
 
   const todayLabel = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date())
@@ -245,15 +251,15 @@ export default function Dashboard() {
                   <div className="space-y-2 border-t border-border pt-4">
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">SPREAD:</span>
-                      <span className="font-semibold text-yellow-600">{game.odds.spread}</span>
+                      <span className="font-semibold text-yellow-600">Mock data</span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">O/U:</span>
-                      <span className="font-semibold text-yellow-600">{game.odds.overUnder}</span>
+                      <span className="font-semibold text-yellow-600">Mock data</span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">ML:</span>
-                      <span className="font-semibold text-yellow-600">{game.odds.moneyline}</span>
+                      <span className="font-semibold text-yellow-600">Mock data</span>
                     </div>
                   </div>
                 </div>

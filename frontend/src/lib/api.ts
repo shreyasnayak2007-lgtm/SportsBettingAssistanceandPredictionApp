@@ -154,9 +154,7 @@ export async function fetchTodayGames(): Promise<LiveGame[]> {
   const payload = await response.json()
 
   // Handle different response formats
-  const records = Array.isArray(payload)
-    ? payload
-    : payload.data ?? payload.games
+  const records = payload.data || (Array.isArray(payload) ? payload : [])
 
   if (!Array.isArray(records)) {
     throw new ApiError('Games API returned an unexpected response')
