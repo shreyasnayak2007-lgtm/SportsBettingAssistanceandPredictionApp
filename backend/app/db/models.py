@@ -9,6 +9,7 @@ from sqlalchemy import (
     ForeignKey,
     UniqueConstraint
 )
+from sqlalchemy.sql import func
 
 from app.db.database import Base
 
@@ -42,17 +43,44 @@ class Player(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
-    # MLB's ID for the player
+    # Official MLB player ID
     mlbam_id = Column(Integer, unique=True, nullable=False, index=True)
 
-    first_name = Column(String(50))
-    last_name = Column(String(50))
-    position = Column(String(20))
-    # In backend/app/db/models.py
-    jersey_number = Column(Integer, nullable=True)
-    handedness = Column(String(1), nullable=True)  # L, R, S
-    team_id = Column(Integer, ForeignKey("teams.id"), nullable=True)
+    first_name = Column(String(50), nullable=True)
+    last_name = Column(String(50), nullable=True)
+    full_name = Column(String(100), nullable=True)
 
+    position = Column(String(20), nullable=True)
+
+    # String instead of Integer so values such as "00" are preserved
+    jersey_number = Column(String(3), nullable=True)
+
+    # Batting side: L, R, S
+    bat_side = Column(String(1), nullable=True)
+
+    # Throwing hand: L, R
+    pitch_hand = Column(String(1), nullable=True)
+
+    team_id = Column(
+        Integer,
+        ForeignKey("teams.id"),
+        nullable=True
+    )
+
+    active = Column(Boolean, nullable=True)
+
+    birth_date = Column(Date, nullable=True)
+    height = Column(String(10), nullable=True)
+    weight = Column(Integer, nullable=True)
+
+    mlb_debut_date = Column(Date, nullable=True)
+
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False
+    )
 
 class Game(Base):
     __tablename__ = "games"
