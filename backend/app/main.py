@@ -3,9 +3,9 @@ from contextlib import asynccontextmanager
 from app.services.live_game_updater import run_live_game_updater
 from fastapi import FastAPI
 from app.api.v1.endpoints.statcast import router as statcast_router
-from app.api.v1.endpoints.statcast import router as statcast_router
 from app.api.v1.endpoints.teams import router as teams_router
 from app.api.v1.endpoints.games import router as games_router
+from app.api.v1.endpoints import teams, games, players
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -44,7 +44,11 @@ app.include_router(
     prefix="/api/v1"
 )
 
-
+app.include_router(
+    players.router,
+    prefix="/api/v1/players",
+    tags=["players"],
+)
 
 @app.get("/")
 def root():
