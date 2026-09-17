@@ -19,7 +19,6 @@ import {
   Moon,
 } from 'lucide-react'
 
-import { fetchTodayGames } from '@/lib/api'
 import type { LiveGame } from '@/lib/api'
 import { mapBackendGamesList } from '@/lib/mappers'
 
@@ -97,12 +96,18 @@ export default function Dashboard() {
 useEffect(() => {
   async function fetchData() {
     try {
-      const response = await fetch('/api/games')
+      const response = await fetch('/api/v1/games/today', { cache: 'no-store' })
       if (response.ok) {
         const rawData = await response.json()
-        // Extract array whether returned as direct array or nested object
+        console.log('rawData:', rawData)
+        
         const gameList = Array.isArray(rawData) ? rawData : rawData.games || rawData.data || []
+        console.log('gameList length:', gameList.length)
+        
         const mappedGames = mapBackendGamesList(gameList)
+        console.log('mappedGames length:', mappedGames.length)
+        console.log('mappedGames:', mappedGames)
+        
         setGames(mappedGames)
       } else {
         console.error('API response error status:', response.status)
