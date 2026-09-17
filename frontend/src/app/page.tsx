@@ -81,6 +81,14 @@ function Market({ label, value }: { label: string; value: string }) {
   )
 }
 
+function formatGameTime(value: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone: 'America/New_York',
+  }).format(new Date(value))
+}
+
 export default function Dashboard() {
   const [games, setGames] = useState<LiveGame[]>([])
   const [loading, setLoading] = useState(true)
@@ -228,11 +236,11 @@ useEffect(() => {
                     <div className="flex items-center gap-2">
                       <Clock3 className="size-4 text-muted-foreground" />
                       <span className="text-sm font-semibold">
-                        {new Date(game.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {formatGameTime(game.time)} EDT
                       </span>
                     </div>
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${game.status === 'live' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                      {game.status === 'live' ? `Live - Inning ${game.inning || 1}` : 'Upcoming'}
+                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${game.status === 'live' ? 'bg-red-100 text-red-700' : game.status === 'final' ? 'bg-muted text-muted-foreground' : 'bg-green-100 text-green-700'}`}>
+                      {game.status === 'live' ? `Live - Inning ${game.inning || 1}` : game.status === 'final' ? 'Final' : 'Upcoming'}
                     </span>
                   </div>
 

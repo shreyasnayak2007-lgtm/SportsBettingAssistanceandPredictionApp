@@ -38,6 +38,7 @@ type Props = {
 // ============================================================
 
 const tabs = ['Overview', 'Head-to-head', 'Last 5', 'Rankings', 'Injuries', 'SGP ideas']
+const mockDataTabs = new Set(['Head-to-head', 'Last 5', 'Rankings'])
 
 const playerInsights = [
   { team: 'Away team', player: 'Starting pitcher', value: '6.2 K / game', detail: 'Consistent strikeout volume in recent starts.' },
@@ -388,7 +389,10 @@ export function GameDetailView({ game, teamLogos, onBack }: Props) {
             <nav className="mt-5 grid grid-cols-2 gap-2 rounded-xl bg-muted p-1 sm:grid-cols-3 lg:grid-cols-6" aria-label="Game summary tabs">
               {tabs.map((tab) => (
                 <button key={tab} onClick={() => setActiveTab(tab)} className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${activeTab === tab ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
-                  {tab}
+                  <span className="flex items-center justify-center gap-1.5">
+                    {tab}
+                    {mockDataTabs.has(tab) && <span className="text-[10px] font-medium text-yellow-600">Mock data</span>}
+                  </span>
                 </button>
               ))}
             </nav>
