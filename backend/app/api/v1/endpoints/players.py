@@ -14,6 +14,13 @@ def get_player_by_mlbam_id(
     mlbam_id: int,
     db: Session = Depends(get_db),
 ):
+    # PostgreSQL INTEGER range check
+    if mlbam_id < 1 or mlbam_id > 2147483647:
+        raise HTTPException(
+            status_code=404,
+            detail="Player not found",
+        )
+
     player = (
         db.query(Player)
         .filter(Player.mlbam_id == mlbam_id)
@@ -27,6 +34,7 @@ def get_player_by_mlbam_id(
         )
 
     return player
+
 
 @router.get("/", response_model=list[PlayerResponse])
 def get_players(
