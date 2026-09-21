@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ArrowLeft, CalendarDays, ChevronRight, CircleHelp, Clock3, MapPin, ShieldCheck, TrendingUp, Users } from 'lucide-react'
+import { fetchGameStatcast, fetchMatchupDetail, type Matchup } from '@/lib/api'
 
 // ============================================================
 // TYPES
@@ -67,6 +68,27 @@ function SectionTitle({ title }: { title: string }) {
   return <h3 className="mb-4 text-xl font-bold">{title}</h3>
 }
 
+function formatGameDate(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+
+  const day = date.getDate()
+  const suffix = day % 100 >= 11 && day % 100 <= 13 ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' } as Record<number, string>)[day % 10] || 'th'
+  const month = new Intl.DateTimeFormat('en-US', { month: 'long' }).format(date)
+  return `${month} ${day}${suffix}`
+}
+
+function formatEasternTime(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'Time unavailable'
+
+  return new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone: 'America/New_York',
+  }).format(date)
+}
+
 function TeamSummary({ team, record, rank }: { team: string; record: string; rank: string }) {
   return (
     <div className="rounded-xl border border-border bg-background p-4">
@@ -115,7 +137,117 @@ function MarketSnapshot({ game }: { game: DetailGame }) {
   )
 }
 
-function Overview({ game }: { game: DetailGame }) {
+function DataSection({ matchup, pitches, loading, error }: { matchup: Matchup | null; pitches: Array<Record<string, unknown>>; loading: boolean; error: string | null }) {
+  if (loading) {
+    return <div className="mt-6 rounded-xl border border-border bg-background p-4 text-sm text-muted-foreground">Loading real matchup data...</div>
+  }
+
+  if (error) {
+    return <div className="mt-6 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">Real matchup data is unavailable: {error}</div>
+  }
+
+  if (!matchup) return null
+
+  const lineups = [
+    { label: `${matchup.awayTeam} lineup`, players: matchup.awayLineup },
+    { label: `${matchup.homeTeam} lineup`, players: matchup.homeLineup },
+  ]
+  const pitchers = [
+    { label: 'Away pitcher', pitcher: matchup.awayPitcher },
+    { label: 'Home pitcher', pitcher: matchup.homePitcher },
+  ]
+
+  return (
+    <div className="mt-6 space-y-6">
+      <div>
+        <SectionTitle title="Real matchup data" />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <InfoRow icon={<MapPin className="size-4" />} label="Ballpark" value={`${matchup.ballparkName} (${matchup.ballparkFactor.toFixed(2)} factor)`} />
+          <InfoRow icon={<TrendingUp className="size-4" />} label="Statcast pitches" value={pitches.length ? `${pitches.length} pitches` : 'No pitches available'} />
+        </div>
+      </div>
+
+      <div>
+        <SectionTitle title="Starting pitchers" />
+        <div className="grid gap-4 sm:grid-cols-2">
+          {pitchers.map(({ label, pitcher }) => (
+            <div key={label} className="rounded-xl border border-border bg-background p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+              {pitcher ? (
+                <>
+                  <p className="mt-2 font-bold">{pitcher.name}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{pitcher.handedness}-handed · ERA {pitcher.season_era.toFixed(2)}</p>
+                </>
+              ) : <p className="mt-2 text-sm text-muted-foreground">No pitcher data available</p>}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <SectionTitle title="Players and lineups" />
+        <div className="grid gap-4 lg:grid-cols-2">
+          {lineups.map(({ label, players }) => (
+            <div key={label} className="rounded-xl border border-border bg-background p-4">
+              <h4 className="mb-3 font-bold">{label}</h4>
+              {players.length ? (
+                <div className="space-y-2">
+                  {players.map((player) => (
+                    <div key={player.mlbamId} className="rounded-lg border border-border px-3 py-3 text-sm">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="font-semibold">{player.name}</span>
+                        <span className="text-right text-muted-foreground">#{player.jerseyNumber} · {player.position} · {player.handedness}</span>
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                        <span>BvP: {player.bvpStats.careerAB} AB, {player.bvpStats.careerH} H, {player.bvpStats.careerAVG.toFixed(3)} AVG</span>
+                        {player.rollingTrends[0] && <span>Recent: {player.rollingTrends[0].hits} H · {player.rollingTrends[0].runs} R · {player.rollingTrends[0].hardHitRate.toFixed(2)} hard-hit</span>}
+                      </div>
+                      {player.badges.length > 0 && <p className="mt-2 text-xs font-semibold text-primary">{player.badges.map((badge) => badge.value).join(' · ')}</p>}
+                    </div>
+                  ))}
+                </div>
+              ) : <p className="text-sm text-muted-foreground">No lineup data available</p>}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {pitches.length > 0 && (
+        <div>
+          <SectionTitle title="Recent Statcast pitches" />
+          <div className="overflow-x-auto rounded-xl border border-border">
+            <table className="w-full min-w-[620px] text-left text-sm">
+              <thead className="bg-muted text-xs uppercase tracking-wide text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-3">Inning</th>
+                  <th className="px-4 py-3">Pitch</th>
+                  <th className="px-4 py-3">Type</th>
+                  <th className="px-4 py-3">Speed</th>
+                  <th className="px-4 py-3">Count</th>
+                  <th className="px-4 py-3">Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pitches.slice(-20).reverse().map((pitch, index) => (
+                  <tr key={`${String(pitch.at_bat_number)}-${String(pitch.pitch_number)}-${index}`} className="border-t border-border">
+                    <td className="px-4 py-3">{String(pitch.inning ?? '—')}</td>
+                    <td className="px-4 py-3">{String(pitch.pitch_number ?? '—')}</td>
+                    <td className="px-4 py-3">{String(pitch.pitch_type ?? '—')}</td>
+                    <td className="px-4 py-3">{pitch.release_speed ? `${String(pitch.release_speed)} mph` : '—'}</td>
+                    <td className="px-4 py-3">{String(pitch.balls ?? '—')}-{String(pitch.strikes ?? '—')}</td>
+                    <td className="px-4 py-3">{String(pitch.events ?? pitch.description ?? '—')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function Overview({ game, matchup, pitches, loading, error }: { game: DetailGame; matchup: Matchup | null; pitches: Array<Record<string, unknown>>; loading: boolean; error: string | null }) {
   return (
     <div className="grid gap-5 xl:grid-cols-[1fr_280px]">
       <div>
@@ -125,19 +257,11 @@ function Overview({ game }: { game: DetailGame }) {
           <TeamSummary team={game.homeTeam} record="Mock data" rank="Mock data" />
         </div>
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
-          <InfoRow icon={<CalendarDays className="size-4" />} label="Game time" value={game.time} />
-          <InfoRow icon={<MapPin className="size-4" />} label="Venue" value="Mock data" />
+          <InfoRow icon={<CalendarDays className="size-4" />} label="Game date" value={formatGameDate(game.time)} />
+          <InfoRow icon={<MapPin className="size-4" />} label="Ballpark" value={matchup ? `${matchup.ballparkName} (${matchup.ballparkFactor.toFixed(2)} factor)` : 'Loading...'} />
           <InfoRow icon={<Clock3 className="size-4" />} label="Status" value={game.status === 'live' ? `Live - Inning ${game.inning || 1}` : 'Preview'} />
         </div>
-        <div className="mt-6">
-          <SectionTitle title="Game context" />
-          <div className="rounded-xl border border-border bg-background p-4">
-            <div className="flex gap-3">
-              <TrendingUp className="mt-0.5 size-5 shrink-0 text-primary" />
-              <p className="text-sm leading-6 text-muted-foreground">Mock game context for educational purposes. This plain-English note is a starting point for understanding the matchup before reviewing each market.</p>
-            </div>
-          </div>
-        </div>
+        <DataSection matchup={matchup} pitches={pitches} loading={loading} error={error} />
       </div>
       <MarketSnapshot game={game} />
     </div>
@@ -275,6 +399,44 @@ function SgpIdeas({ game }: { game: DetailGame }) {
 
 export function GameDetailView({ game, teamLogos, onBack }: Props) {
   const [activeTab, setActiveTab] = useState('Overview')
+  const [matchup, setMatchup] = useState<Matchup | null>(null)
+  const [pitches, setPitches] = useState<Array<Record<string, unknown>>>([])
+  const [dataLoading, setDataLoading] = useState(true)
+  const [dataError, setDataError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadGameData() {
+      setDataLoading(true)
+      setDataError(null)
+
+      const [matchupResult, statcastResult] = await Promise.allSettled([
+        fetchMatchupDetail(game.gamePk),
+        fetchGameStatcast(game.gamePk),
+      ])
+
+      if (cancelled) return
+
+      if (matchupResult.status === 'fulfilled') {
+        setMatchup(matchupResult.value)
+      } else {
+        setDataError(matchupResult.reason instanceof Error ? matchupResult.reason.message : 'Matchup request failed')
+      }
+
+      if (statcastResult.status === 'fulfilled') {
+        setPitches(statcastResult.value)
+      }
+
+      setDataLoading(false)
+    }
+
+    loadGameData()
+
+    return () => {
+      cancelled = true
+    }
+  }, [game.gamePk])
 
   return (
     <div className="fixed inset-0 z-40 overflow-y-auto bg-background text-foreground">
@@ -339,7 +501,7 @@ export function GameDetailView({ game, teamLogos, onBack }: Props) {
           <div className="rounded-lg border border-border bg-card p-4 space-y-3">
             <div>
               <p className="text-xs font-semibold uppercase text-muted-foreground">Game time</p>
-              <p className="font-semibold">{new Date(game.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+              <p className="font-semibold">{formatEasternTime(game.time)} ET</p>
             </div>
             <div>
               <p className="text-xs font-semibold uppercase text-muted-foreground">Status</p>
@@ -382,7 +544,7 @@ export function GameDetailView({ game, teamLogos, onBack }: Props) {
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-primary">Game summary</p>
                 <h2 className="mt-1 text-2xl font-bold sm:text-3xl">{game.awayTeam} at {game.homeTeam}</h2>
-                <p className="mt-2 text-sm text-muted-foreground">Today · {game.time} · Summary-first view</p>
+                <p className="mt-2 text-sm text-muted-foreground">{formatGameDate(game.time)} · Summary-first view</p>
               </div>
             </div>
 
@@ -398,7 +560,7 @@ export function GameDetailView({ game, teamLogos, onBack }: Props) {
             </nav>
 
             <div className="mt-6">
-              {activeTab === 'Overview' && <Overview game={game} />}
+              {activeTab === 'Overview' && <Overview game={game} matchup={matchup} pitches={pitches} loading={dataLoading} error={dataError} />}
               {activeTab === 'Head-to-head' && <HeadToHead game={game} />}
               {activeTab === 'Last 5' && <LastFive game={game} teamLogos={teamLogos} />}
               {activeTab === 'Rankings' && <Rankings game={game} />}
