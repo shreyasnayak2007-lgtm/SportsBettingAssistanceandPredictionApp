@@ -2,21 +2,42 @@
 
 import { useEffect, useState } from 'react'
 import { ArrowLeft, CalendarDays, ChevronRight, CircleHelp, Clock3, MapPin, ShieldCheck, TrendingUp, Users } from 'lucide-react'
-import { fetchGameStatcast, fetchMatchupDetail, type Matchup } from '@/lib/api'
+import { fetchGameStatcast, fetchMatchupDetail, parseBackendDateTime, type Matchup } from '@/lib/api'
 
 // ============================================================
 // TYPES
 // ============================================================
 
 type DetailGame = {
+  id: number
   gamePk: number
   gameDate: string
+  season: number
+  gameDatetime: string | null
   awayTeam: string
+  awayTeamName: string
+  awayTeamId: number
+  awayMlbTeamId: number
+  awayLeague: string | null
+  awayDivision: string | null
   homeTeam: string
+  homeTeamName: string
+  homeTeamId: number
+  homeMlbTeamId: number
+  homeLeague: string | null
+  homeDivision: string | null
   awayScore: number
   homeScore: number
   status: 'live' | 'upcoming' | 'final'
+  statusLabel: string
   inning?: number
+  inningState?: string | null
+  outs?: number | null
+  runners: {
+    first: boolean
+    second: boolean
+    third: boolean
+  }
   time: string
   pitches: any[]
   odds: {
@@ -69,7 +90,7 @@ function SectionTitle({ title }: { title: string }) {
 }
 
 function formatGameDate(value: string) {
-  const date = new Date(value)
+  const date = parseBackendDateTime(value)
   if (Number.isNaN(date.getTime())) return value
 
   const day = date.getDate()
@@ -79,7 +100,7 @@ function formatGameDate(value: string) {
 }
 
 function formatEasternTime(value: string) {
-  const date = new Date(value)
+  const date = parseBackendDateTime(value)
   if (Number.isNaN(date.getTime())) return 'Time unavailable'
 
   return new Intl.DateTimeFormat('en-US', {
@@ -89,12 +110,12 @@ function formatEasternTime(value: string) {
   }).format(date)
 }
 
-function TeamSummary({ team, record, rank }: { team: string; record: string; rank: string }) {
+function TeamSummary({ name, abbreviation, league, division }: { name: string; abbreviation: string; league: string | null; division: string | null }) {
   return (
     <div className="rounded-xl border border-border bg-background p-4">
-      <p className="font-bold">{team}</p>
-      <p className="mt-3 text-sm text-muted-foreground">Record <span className="font-semibold text-foreground">{record}</span></p>
-      <p className="mt-2 text-sm text-muted-foreground">Division rank <span className="font-semibold text-foreground">{rank}</span></p>
+      <p className="font-bold">{name} ({abbreviation})</p>
+      <p className="mt-3 text-sm text-muted-foreground">League <span className="font-semibold text-foreground">{league || 'Unavailable'}</span></p>
+      <p className="mt-2 text-sm text-muted-foreground">Division <span className="font-semibold text-foreground">{division || 'Unavailable'}</span></p>
     </div>
   )
 }
@@ -220,22 +241,32 @@ function DataSection({ matchup, pitches, loading, error }: { matchup: Matchup | 
               <thead className="bg-muted text-xs uppercase tracking-wide text-muted-foreground">
                 <tr>
                   <th className="px-4 py-3">Inning</th>
+                  <th className="px-4 py-3">Half</th>
+                  <th className="px-4 py-3">At-bat</th>
                   <th className="px-4 py-3">Pitch</th>
                   <th className="px-4 py-3">Type</th>
                   <th className="px-4 py-3">Speed</th>
                   <th className="px-4 py-3">Count</th>
                   <th className="px-4 py-3">Result</th>
+                  <th className="px-4 py-3">Exit speed</th>
+                  <th className="px-4 py-3">Launch angle</th>
+                  <th className="px-4 py-3">xwOBA</th>
                 </tr>
               </thead>
               <tbody>
                 {pitches.slice(-20).reverse().map((pitch, index) => (
                   <tr key={`${String(pitch.at_bat_number)}-${String(pitch.pitch_number)}-${index}`} className="border-t border-border">
                     <td className="px-4 py-3">{String(pitch.inning ?? '—')}</td>
+                    <td className="px-4 py-3">{String(pitch.inning_topbot ?? '—')}</td>
+                    <td className="px-4 py-3">{String(pitch.at_bat_number ?? '—')}</td>
                     <td className="px-4 py-3">{String(pitch.pitch_number ?? '—')}</td>
                     <td className="px-4 py-3">{String(pitch.pitch_type ?? '—')}</td>
                     <td className="px-4 py-3">{pitch.release_speed ? `${String(pitch.release_speed)} mph` : '—'}</td>
                     <td className="px-4 py-3">{String(pitch.balls ?? '—')}-{String(pitch.strikes ?? '—')}</td>
                     <td className="px-4 py-3">{String(pitch.events ?? pitch.description ?? '—')}</td>
+                    <td className="px-4 py-3">{String(pitch.launch_speed ?? '—')}</td>
+                    <td className="px-4 py-3">{String(pitch.launch_angle ?? '—')}</td>
+                    <td className="px-4 py-3">{String(pitch.estimated_woba ?? '—')}</td>
                   </tr>
                 ))}
               </tbody>
@@ -253,14 +284,22 @@ function Overview({ game, matchup, pitches, loading, error }: { game: DetailGame
       <div>
         <SectionTitle title="Matchup information" />
         <div className="grid gap-4 sm:grid-cols-2">
-          <TeamSummary team={game.awayTeam} record="Mock data" rank="Mock data" />
-          <TeamSummary team={game.homeTeam} record="Mock data" rank="Mock data" />
+          <TeamSummary name={game.awayTeamName} abbreviation={game.awayTeam} league={game.awayLeague} division={game.awayDivision} />
+          <TeamSummary name={game.homeTeamName} abbreviation={game.homeTeam} league={game.homeLeague} division={game.homeDivision} />
         </div>
-        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <InfoRow icon={<CalendarDays className="size-4" />} label="Game date" value={formatGameDate(game.time)} />
           <InfoRow icon={<MapPin className="size-4" />} label="Ballpark" value={matchup ? `${matchup.ballparkName} (${matchup.ballparkFactor.toFixed(2)} factor)` : 'Loading...'} />
           <InfoRow icon={<Clock3 className="size-4" />} label="Status" value={game.status === 'live' ? `Live - Inning ${game.inning || 1}` : 'Preview'} />
+          <InfoRow icon={<TrendingUp className="size-4" />} label="Season" value={String(game.season)} />
         </div>
+        {game.status === 'live' && (
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <InfoRow icon={<Clock3 className="size-4" />} label="Inning state" value={`${game.inningState || 'In progress'}${game.inning ? ` ${game.inning}` : ''}`} />
+            <InfoRow icon={<Users className="size-4" />} label="Outs" value={String(game.outs ?? 0)} />
+            <InfoRow icon={<Users className="size-4" />} label="Runners on" value={[game.runners.first && '1B', game.runners.second && '2B', game.runners.third && '3B'].filter(Boolean).join(', ') || 'None'} />
+          </div>
+        )}
         <DataSection matchup={matchup} pitches={pitches} loading={loading} error={error} />
       </div>
       <MarketSnapshot game={game} />
@@ -506,7 +545,7 @@ export function GameDetailView({ game, teamLogos, onBack }: Props) {
             <div>
               <p className="text-xs font-semibold uppercase text-muted-foreground">Status</p>
               <p className="font-semibold">
-                {game.status === 'live' ? `Live - Inning ${game.inning || 1}` : game.status === 'final' ? 'Final' : 'Preview'}
+                {game.status === 'live' ? `Live - Inning ${game.inning || 1}` : game.statusLabel}
               </p>
             </div>
           </div>

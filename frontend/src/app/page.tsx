@@ -19,7 +19,7 @@ import {
   Moon,
 } from 'lucide-react'
 
-import type { LiveGame } from '@/lib/api'
+import { parseBackendDateTime, type LiveGame } from '@/lib/api'
 import { mapBackendGamesList } from '@/lib/mappers'
 
 const teamLogos: Record<string, { label: string; url: string }> = {
@@ -86,7 +86,7 @@ function formatGameTime(value: string) {
     hour: 'numeric',
     minute: '2-digit',
     timeZone: 'America/New_York',
-  }).format(new Date(value))
+  }).format(parseBackendDateTime(value))
 }
 
 export default function Dashboard() {
@@ -236,11 +236,11 @@ useEffect(() => {
                     <div className="flex items-center gap-2">
                       <Clock3 className="size-4 text-muted-foreground" />
                       <span className="text-sm font-semibold">
-                        {formatGameTime(game.time)} EDT
+                        {formatGameTime(game.time)} ET
                       </span>
                     </div>
                     <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${game.status === 'live' ? 'bg-red-100 text-red-700' : game.status === 'final' ? 'bg-muted text-muted-foreground' : 'bg-green-100 text-green-700'}`}>
-                      {game.status === 'live' ? `Live - Inning ${game.inning || 1}` : game.status === 'final' ? 'Final' : 'Upcoming'}
+                      {game.status === 'live' ? `Live - Inning ${game.inning || 1}` : game.statusLabel}
                     </span>
                   </div>
 
@@ -248,31 +248,45 @@ useEffect(() => {
                     {/* Away Team */}
                     <div className="flex flex-col items-center gap-2">
                       <TeamLogo team={game.awayTeam} size="size-12" />
-                      <span className="text-sm font-semibold">{game.awayTeam}</span>
+                      <span className="text-center text-sm font-semibold">{game.awayTeamName}</span>
                       <span className="text-2xl font-bold">{game.awayScore}</span>
                     </div>
 
                     {/* Home Team */}
                     <div className="flex flex-col items-center gap-2">
                       <TeamLogo team={game.homeTeam} size="size-12" />
-                      <span className="text-sm font-semibold">{game.homeTeam}</span>
+                      <span className="text-center text-sm font-semibold">{game.homeTeamName}</span>
                       <span className="text-2xl font-bold">{game.homeScore}</span>
                     </div>
                   </div>
 
-                  {/* Markets - Mock Data */}
+                  <div className="mb-4 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                    <span>{game.season} season</span>
+                    <span className="text-right">{game.homeDivision || 'Division unavailable'}</span>
+                    {game.status === 'live' && <span>{game.inningState || 'In progress'} {game.inning || ''}</span>}
+                    {game.status === 'live' && <span className="text-right">{game.outs ?? 0} outs</span>}
+                  </div>
+
+                  {game.status === 'live' && (
+                    <div className="mb-4 flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2 text-xs">
+                      <span className="font-semibold">Runners</span>
+                      <span>1B {game.runners.first ? 'occupied' : 'open'} · 2B {game.runners.second ? 'occupied' : 'open'} · 3B {game.runners.third ? 'occupied' : 'open'}</span>
+                    </div>
+                  )}
+
+                  {/* Backend does not provide betting markets */}
                   <div className="space-y-2 border-t border-border pt-4">
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">SPREAD:</span>
-                      <span className="font-semibold text-yellow-600">Mock data</span>
+                      <span className="font-semibold text-muted-foreground">Not available</span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">O/U:</span>
-                      <span className="font-semibold text-yellow-600">Mock data</span>
+                      <span className="font-semibold text-muted-foreground">Not available</span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">ML:</span>
-                      <span className="font-semibold text-yellow-600">Mock data</span>
+                      <span className="font-semibold text-muted-foreground">Not available</span>
                     </div>
                   </div>
                 </div>

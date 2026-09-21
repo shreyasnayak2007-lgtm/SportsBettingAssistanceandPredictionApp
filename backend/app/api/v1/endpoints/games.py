@@ -73,6 +73,8 @@ def get_today_games(
                 "mlb_team_id": away_team.mlb_team_id,
                 "abbreviation": away_team.abbreviation,
                 "name": away_team.name,
+                "league": away_team.league,
+                "division": away_team.division,
                 "score": game.away_score,
             },
 
@@ -81,6 +83,8 @@ def get_today_games(
                 "mlb_team_id": home_team.mlb_team_id,
                 "abbreviation": home_team.abbreviation,
                 "name": home_team.name,
+                "league": home_team.league,
+                "division": home_team.division,
                 "score": game.home_score,
             },
 
