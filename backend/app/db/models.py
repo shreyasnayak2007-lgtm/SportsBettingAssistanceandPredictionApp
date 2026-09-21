@@ -82,6 +82,64 @@ class Player(Base):
         nullable=False
     )
 
+class BattingSeasonStat(Base):
+    __tablename__ = "batting_season_stats"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    player_id = Column(
+        Integer,
+        ForeignKey("players.id"),
+        nullable=False,
+        index=True
+    )
+
+    season = Column(Integer, nullable=False, index=True)
+
+    # FanGraphs player ID from pybaseball
+    fangraphs_id = Column(Integer, nullable=True, index=True)
+
+    games = Column(Integer, nullable=True)
+    plate_appearances = Column(Integer, nullable=True)
+    at_bats = Column(Integer, nullable=True)
+
+    runs = Column(Integer, nullable=True)
+    hits = Column(Integer, nullable=True)
+    doubles = Column(Integer, nullable=True)
+    triples = Column(Integer, nullable=True)
+    home_runs = Column(Integer, nullable=True)
+
+    rbi = Column(Integer, nullable=True)
+    walks = Column(Integer, nullable=True)
+    strikeouts = Column(Integer, nullable=True)
+
+    stolen_bases = Column(Integer, nullable=True)
+    caught_stealing = Column(Integer, nullable=True)
+
+    batting_average = Column(Float, nullable=True)
+    on_base_percentage = Column(Float, nullable=True)
+    slugging_percentage = Column(Float, nullable=True)
+    ops = Column(Float, nullable=True)
+
+    woba = Column(Float, nullable=True)
+    wrc_plus = Column(Float, nullable=True)
+    war = Column(Float, nullable=True)
+
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "player_id",
+            "season",
+            name="uq_batting_player_season"
+        ),
+    )
+
 class Game(Base):
     __tablename__ = "games"
 
