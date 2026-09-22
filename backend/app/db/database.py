@@ -21,3 +21,20 @@ def get_db():
         yield db
     finally:
         db.close()
+
+def create_tables():
+    # Import models here so every SQLAlchemy model is registered
+    # with Base.metadata before create_all runs.
+    from app.db import models
+
+    if engine is None:
+        raise RuntimeError(
+            'DATABASE_URL or POSTGRES_URL is required to create database tables'
+        )
+
+    Base.metadata.create_all(bind=engine)
+    print("Database tables created/verified.")
+
+
+if __name__ == "__main__":
+    create_tables()
