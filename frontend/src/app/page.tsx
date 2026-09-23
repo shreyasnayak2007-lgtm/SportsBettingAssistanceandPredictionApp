@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { GameDetailView } from '@/components/dashboard/GameDetailView'
+import { PropDetailView, PropsSection, type PropCard } from '@/components/dashboard/CheatsheetSection'
 import {
   ArrowRight,
   BarChart3,
@@ -40,6 +41,7 @@ const teamLogos: Record<string, { label: string; url: string }> = {
   PIT: { label: 'Pittsburgh Pirates', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/134.svg' },
   CWS: { label: 'Chicago White Sox', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/145.svg' },
   ARI: { label: 'Arizona Diamondbacks', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/109.svg' },
+  AZ: { label: 'Arizona Diamondbacks', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/109.svg' },
   KC: { label: 'Kansas City Royals', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/118.svg' },
   LAD: { label: 'Los Angeles Dodgers', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/119.svg' },
   SD: { label: 'San Diego Padres', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/135.svg' },
@@ -51,6 +53,7 @@ const teamLogos: Record<string, { label: string; url: string }> = {
   CHC: { label: 'Chicago Cubs', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/112.svg' },
   TEX: { label: 'Texas Rangers', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/140.svg' },
   OAK: { label: 'Oakland Athletics', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/133.svg' },
+  ATH: { label: 'Athletics', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/133.svg' },
   SEA: { label: 'Seattle Mariners', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/136.svg' },
   TOR: { label: 'Toronto Blue Jays', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/141.svg' },
 }
@@ -93,6 +96,7 @@ export default function Dashboard() {
   const [games, setGames] = useState<LiveGame[]>([])
   const [loading, setLoading] = useState(true)
   const [detailGame, setDetailGame] = useState<any>(null)
+  const [detailProp, setDetailProp] = useState<PropCard | null>(null)
   const [stake, setStake] = useState('100')
   const [odds, setOdds] = useState('-110')
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -145,6 +149,14 @@ useEffect(() => {
     return (
       <div className={`${isLightMode ? 'light' : 'dark'} min-h-screen bg-background text-foreground`}>
         <GameDetailView game={detailGame} teamLogos={teamLogos} onBack={() => setDetailGame(null)} />
+      </div>
+    )
+  }
+
+  if (detailProp) {
+    return (
+      <div className={`${isLightMode ? 'light' : 'dark'} min-h-screen bg-background text-foreground`}>
+        <PropDetailView prop={detailProp} onBack={() => setDetailProp(null)} />
       </div>
     )
   }
@@ -294,6 +306,8 @@ useEffect(() => {
             )}
           </div>
         </section>
+
+        <PropsSection onSelect={setDetailProp} />
 
         <section id="trending" className="mb-10 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">

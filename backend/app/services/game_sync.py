@@ -5,7 +5,7 @@ from sqlalchemy.dialects.postgresql import insert
 
 from app.db.database import SessionLocal
 from app.db.models import Game, Team
-from app.services.mlb_api import get_mlb_games
+from app.services.mlb_api import get_mlb_games, get_mlb_live_game
 from datetime import date, datetime
 
 
@@ -34,7 +34,6 @@ def sync_games(
 
             for game in date_group.get("games", []):
                 linescore = game.get("linescore", {})
-                offense = linescore.get("offense", {})
                 home = game["teams"]["home"]
                 away = game["teams"]["away"]
 
@@ -50,6 +49,22 @@ def sync_games(
                         "team not found in database."
                     )
                     continue
+
+                runner_state = {
+                    "first": False,
+                    "second": False,
+                    "third": False,
+                }
+
+                if game["status"].get("abstractGameState") == "Live":
+                    try:
+                        live_game = get_mlb_live_game(game["gamePk"])
+                        runner_state = _get_current_runner_state(live_game)
+                    except Exception as error:
+                        print(
+                            f"Could not load runners for game {game['gamePk']}: "
+                            f"{error}"
+                        )
 
                 values = {
                     "game_pk": game["gamePk"],
@@ -81,17 +96,9 @@ def sync_games(
 
                     "outs": linescore.get("outs"),
 
-                    "runner_on_first": (
-                            offense.get("first") is not None
-                    ),
-
-                    "runner_on_second": (
-                            offense.get("second") is not None
-                    ),
-
-                    "runner_on_third": (
-                            offense.get("third") is not None
-                    ),
+                        "runner_on_first": runner_state["first"],
+                        "runner_on_second": runner_state["second"],
+                        "runner_on_third": runner_state["third"],
                 }
 
                 statement = insert(Game).values(**values)
@@ -139,6 +146,44 @@ def sync_games(
 
     finally:
         db.close()
+
+
+def _get_current_runner_state(live_game: dict) -> dict[str, bool]:
+    """Reconstruct base occupancy from MLB's live play-by-play movements."""
+    plays = live_game.get("liveData", {}).get("plays", {}).get("allPlays", [])
+    bases: dict[str, int] = {}
+    current_half = None
+
+    for play in plays:
+        about = play.get("about", {})
+        half = (about.get("inning"), about.get("isTopInning"))
+        if half != current_half:
+            bases = {}
+            current_half = half
+
+        for runner in play.get("runners", []):
+            details = runner.get("details", {})
+            runner_id = details.get("runner", {}).get("id")
+            movement = runner.get("movement", {})
+            start = movement.get("start")
+            end = movement.get("end")
+
+            if runner_id is not None:
+                for base, occupant in list(bases.items()):
+                    if occupant == runner_id:
+                        del bases[base]
+
+            if movement.get("isOut") or end in (None, "4B"):
+                continue
+
+            if runner_id is not None and end in ("1B", "2B", "3B"):
+                bases[end] = runner_id
+
+    return {
+        "first": "1B" in bases,
+        "second": "2B" in bases,
+        "third": "3B" in bases,
+    }
 
 
 if __name__ == "__main__":

@@ -290,7 +290,7 @@ function Overview({ game, matchup, pitches, loading, error }: { game: DetailGame
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <InfoRow icon={<CalendarDays className="size-4" />} label="Game date" value={formatGameDate(game.time)} />
           <InfoRow icon={<MapPin className="size-4" />} label="Ballpark" value={matchup ? `${matchup.ballparkName} (${matchup.ballparkFactor.toFixed(2)} factor)` : 'Loading...'} />
-          <InfoRow icon={<Clock3 className="size-4" />} label="Status" value={game.status === 'live' ? `Live - Inning ${game.inning || 1}` : 'Preview'} />
+          <InfoRow icon={<Clock3 className="size-4" />} label="Status" value={game.status === 'live' ? `Live - Inning ${game.inning || 1}` : game.statusLabel} />
           <InfoRow icon={<TrendingUp className="size-4" />} label="Season" value={String(game.season)} />
         </div>
         {game.status === 'live' && (
