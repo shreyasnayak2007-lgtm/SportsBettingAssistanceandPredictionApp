@@ -1,5 +1,6 @@
 import pandas as pd
 from pybaseball import statcast, cache
+from pybaseball import batting_stats
 
 
 cache.enable()
@@ -59,3 +60,25 @@ def clean_statcast_data(data: pd.DataFrame) -> pd.DataFrame:
     ).dt.date
 
     return cleaned
+
+def fetch_batting_stats_2026():
+    print("Fetching 2026 batting stats...")
+
+    data = batting_stats(
+        2026,
+        2026,
+        qual=0
+    )
+
+    print(f"\nRows: {len(data)}")
+
+    print("\nColumns:")
+    print(data.columns.tolist())
+
+    print("\nFirst 10 rows:")
+    print(data.head(10))
+
+    return data
+
+if __name__ == "__main__":
+    fetch_batting_stats_2026()
