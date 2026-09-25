@@ -3,8 +3,8 @@
 import pandas as pd
 from typing import Dict, Tuple, Optional
 import numpy as np
-from data_loader import StatcastDataLoader
-import config
+from src.data_loader import StatcastDataLoader
+import src.config as config
 
 
 class HierarchicalBvPModel:
