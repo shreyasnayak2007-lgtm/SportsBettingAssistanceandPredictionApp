@@ -1,7 +1,18 @@
 # simulation/src/data_loader.py
 
+import os
+import calendar
+from pathlib import Path
+
 import pandas as pd
-from pybaseball import statcast
+
+# pybaseball reads this setting while it is imported.
+os.environ.setdefault(
+    'PYBASEBALL_CACHE',
+    str(Path(__file__).resolve().parents[1] / 'data')
+)
+
+from pybaseball import cache, statcast
 from typing import Dict, Tuple, List
 import src.config as config
 import logging
@@ -18,26 +29,76 @@ class StatcastDataLoader:
         self.batter_stats = {}
         self.matchup_history = {}
 
-    def load_season(self, year: int, use_cache: bool = True) -> pd.DataFrame:
-        """Load full season Statcast data."""
+    def load_season(self, year: int, use_cache: bool = True,
+                    allow_mock_data: bool = False) -> pd.DataFrame:
+        """Load full season Statcast data, optionally allowing development data."""
         logger.info(f"Loading Statcast data for {year}...")
+        season_cache = Path(__file__).resolve().parents[1] / 'data' / f'statcast_{year}.pkl'
+        season_cache.parent.mkdir(parents=True, exist_ok=True)
 
         try:
-            # Try to load from pybaseball with caching
-            self.statcast_df = statcast(f'{year}-01-01', f'{year}-12-31')
+            if use_cache and season_cache.exists():
+                self.statcast_df = pd.read_pickle(season_cache)
+                self._preprocess_data()
+                logger.info("Loaded %s Statcast records from %s", len(self.statcast_df), season_cache)
+                return self.statcast_df
+
+            if use_cache:
+                cache.enable()
+                logger.info("pybaseball cache enabled")
+            else:
+                cache.disable()
+
+            monthly_frames = []
+            for month in range(1, 13):
+                month_cache = season_cache.with_name(
+                    f'statcast_{year}_{month:02d}.pkl'
+                )
+
+                if use_cache and month_cache.exists():
+                    month_df = pd.read_pickle(month_cache)
+                    logger.info(
+                        "Loaded cached Statcast month %s/%s (%s records)",
+                        year, month, len(month_df)
+                    )
+                else:
+                    last_day = calendar.monthrange(year, month)[1]
+                    logger.info("Downloading Statcast month %s/%s", year, month)
+                    month_df = statcast(
+                        f'{year}-{month:02d}-01',
+                        f'{year}-{month:02d}-{last_day:02d}',
+                        verbose=True,
+                        parallel=False,
+                    )
+                    if use_cache:
+                        month_df.to_pickle(month_cache)
+
+                if month_df is not None and len(month_df) > 0:
+                    monthly_frames.append(month_df)
+
+            self.statcast_df = (
+                pd.concat(monthly_frames, ignore_index=True)
+                if monthly_frames else pd.DataFrame()
+            )
 
             if self.statcast_df is None or len(self.statcast_df) == 0:
-                logger.warning(f"Empty data returned for {year}. Using mock data.")
-                return self._get_mock_data()
+                raise RuntimeError(f"No Statcast data returned for {year}")
 
             self._preprocess_data()
+            if use_cache:
+                self.statcast_df.to_pickle(season_cache)
             logger.info(f"Successfully loaded {len(self.statcast_df)} records from Statcast")
             return self.statcast_df
 
         except Exception as e:
             logger.error(f"Error loading from pybaseball: {e}")
-            logger.warning("Falling back to mock data for demonstration")
-            return self._get_mock_data()
+            if allow_mock_data:
+                logger.warning("Using mock data because allow_mock_data=True")
+                return self._get_mock_data()
+            raise RuntimeError(
+                f"Could not load real Statcast data for {year}. "
+                "Check connectivity or run again after the cache is populated."
+            ) from e
 
     def _get_mock_data(self) -> pd.DataFrame:
         """
@@ -153,6 +214,9 @@ class StatcastDataLoader:
     def get_pitcher_stats(self, pitcher_id: int, min_pa: int = 10) -> Dict:
         """Get aggregated stats for a pitcher."""
         try:
+            if pitcher_id in self.pitcher_stats:
+                return self.pitcher_stats[pitcher_id]
+
             pitcher_data = self.statcast_df[self.statcast_df['pitcher'] == pitcher_id]
 
             if len(pitcher_data) < min_pa:
@@ -160,16 +224,21 @@ class StatcastDataLoader:
 
             fastball_count = (pitcher_data['pitch_category'] == 'fastball').sum()
             breaking_count = (pitcher_data['pitch_category'] == 'breaking').sum()
+            fastball_velo = pitcher_data.loc[
+                pitcher_data['pitch_category'] == 'fastball',
+                'release_speed'
+            ].mean()
+            if pd.isna(fastball_velo):
+                fastball_velo = 92.0
 
-            return {
+            stats = {
                 'pitcher_id': pitcher_id,
                 'total_pa': len(pitcher_data),
                 'fastball_pct': fastball_count / len(pitcher_data) if len(pitcher_data) > 0 else 0.60,
                 'breaking_pct': breaking_count / len(pitcher_data) if len(pitcher_data) > 0 else 0.25,
                 'changeup_pct': 1 - (fastball_count + breaking_count) / len(pitcher_data) if len(
                     pitcher_data) > 0 else 0.15,
-                'fastball_avg_velo': pitcher_data[pitcher_data['pitch_category'] == 'fastball'][
-                                         'release_speed'].mean() or 92,
+                'fastball_avg_velo': fastball_velo,
                 'whiff_rate': self._calculate_whiff_rate(pitcher_data),
                 'k_rate': (pitcher_data['events'].astype(str).str.contains('strikeout', na=False)).sum() / len(
                     pitcher_data) if len(pitcher_data) > 0 else 0.20,
@@ -177,6 +246,8 @@ class StatcastDataLoader:
                     pitcher_data) if len(pitcher_data) > 0 else 0.08,
                 'ba_against': pitcher_data['is_hit'].sum() / len(pitcher_data) if len(pitcher_data) > 0 else 0.270,
             }
+            self.pitcher_stats[pitcher_id] = stats
+            return stats
         except Exception as e:
             logger.warning(f"Error getting pitcher stats for {pitcher_id}: {e}")
             return None
@@ -184,12 +255,15 @@ class StatcastDataLoader:
     def get_batter_stats(self, batter_id: int, min_pa: int = 10) -> Dict:
         """Get aggregated stats for a batter."""
         try:
+            if batter_id in self.batter_stats:
+                return self.batter_stats[batter_id]
+
             batter_data = self.statcast_df[self.statcast_df['batter'] == batter_id]
 
             if len(batter_data) < min_pa:
                 return None
 
-            return {
+            stats = {
                 'batter_id': batter_id,
                 'total_pa': len(batter_data),
                 'ba': batter_data['is_hit'].sum() / len(batter_data) if len(batter_data) > 0 else 0.270,
@@ -207,6 +281,8 @@ class StatcastDataLoader:
                 'fb_rate': (batter_data['contact_type'] == 'fly_ball').sum() / len(batter_data) if len(
                     batter_data) > 0 else 0.35,
             }
+            self.batter_stats[batter_id] = stats
+            return stats
         except Exception as e:
             logger.warning(f"Error getting batter stats for {batter_id}: {e}")
             return None

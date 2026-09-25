@@ -2,6 +2,7 @@
 
 import sys
 import os
+import argparse
 import logging
 from typing import Dict, List
 import pandas as pd
@@ -14,6 +15,7 @@ from data_loader import StatcastDataLoader
 from bvp_model import HierarchicalBvPModel
 from pitcher_archetype import PitcherArchetype, ArchetypePool, ArchetypeComparison
 from game_simulator import GameSimulator
+from real_data import RealDataProvider
 from src import config
 
 # ============================================================
@@ -328,63 +330,45 @@ def main():
     Main execution function demonstrating the full pipeline.
     """
 
+    parser = argparse.ArgumentParser(description='Run an MLB game simulation.')
+    parser.add_argument('--date', default=None, help='Game date in YYYY-MM-DD format.')
+    parser.add_argument('--away', default=None, help='Away team name or abbreviation.')
+    parser.add_argument('--home', default=None, help='Home team name or abbreviation.')
+    parser.add_argument('--statcast-year', type=int, default=2023)
+    parser.add_argument('--simulations', type=int, default=1000)
+    args = parser.parse_args()
+
+    if bool(args.away) != bool(args.home):
+        parser.error('--away and --home must be provided together')
+
     print(f"\n{'=' * 70}")
     print(f"MLB GAME PREDICTION ENGINE - BvP SIMULATION")
     print(f"{'=' * 70}\n")
 
     # Step 1: Initialize engine
-    engine = MLBPredictionEngine(statcast_years=[2023])
+    engine = MLBPredictionEngine(statcast_years=[args.statcast_year])
 
     # Step 2: Load data
     if not engine.load_data():
         logger.error("Failed to load data. Exiting.")
         return
 
-    # Step 3: Define teams (example data)
-    # In real usage, these would come from the backend/database
-    away_team = {
-        'team_name': 'Los Angeles Dodgers',
-        'lineup': [
-            {'batter_id': 430945, 'hand': 'R', 'name': 'Mike Trout'},
-            {'batter_id': 514888, 'hand': 'L', 'name': 'Player 2'},
-            {'batter_id': 593145, 'hand': 'R', 'name': 'Player 3'},
-            {'batter_id': 605141, 'hand': 'L', 'name': 'Player 4'},
-            {'batter_id': 570560, 'hand': 'R', 'name': 'Player 5'},
-            {'batter_id': 591227, 'hand': 'R', 'name': 'Player 6'},
-            {'batter_id': 543135, 'hand': 'L', 'name': 'Player 7'},
-            {'batter_id': 608070, 'hand': 'R', 'name': 'Player 8'},
-            {'batter_id': 596019, 'hand': 'R', 'name': 'Player 9'},
-        ]
-    }
-
-    home_team = {
-        'team_name': 'San Diego Padres',
-        'lineup': [
-            {'batter_id': 506560, 'hand': 'R', 'name': 'Manny Machado'},
-            {'batter_id': 608070, 'hand': 'L', 'name': 'Player 2'},
-            {'batter_id': 571448, 'hand': 'R', 'name': 'Player 3'},
-            {'batter_id': 596019, 'hand': 'R', 'name': 'Player 4'},
-            {'batter_id': 514888, 'hand': 'L', 'name': 'Player 5'},
-            {'batter_id': 543135, 'hand': 'R', 'name': 'Player 6'},
-            {'batter_id': 605141, 'hand': 'L', 'name': 'Player 7'},
-            {'batter_id': 630588, 'hand': 'R', 'name': 'Player 8'},
-            {'batter_id': 543722, 'hand': 'R', 'name': 'Player 9'},
-        ]
-    }
-
-    away_pitchers = [
-        {'pitcher_id': 112526, 'hand': 'L', 'name': 'Clayton Kershaw'}
-    ]
-
-    home_pitchers = [
-        {'pitcher_id': 543243, 'hand': 'R', 'name': 'Starting Pitcher'}
-    ]
+    # Step 3: Load real game participants from the backend or MLB API.
+    game_inputs = RealDataProvider().load_game_inputs(
+        game_date=args.date,
+        away_team=args.away,
+        home_team=args.home,
+    )
+    away_team = game_inputs['away_team']
+    home_team = game_inputs['home_team']
+    away_pitchers = game_inputs['away_pitchers']
+    home_pitchers = game_inputs['home_pitchers']
 
     # Step 4: Run prediction
     logger.info("Starting game prediction...")
     results = engine.predict_game(
         away_team, home_team, away_pitchers, home_pitchers,
-        num_simulations=1000,  # Start with 1,000 for faster testing; increase to 10,000 for production
+        num_simulations=args.simulations,
         verbose=True
     )
 

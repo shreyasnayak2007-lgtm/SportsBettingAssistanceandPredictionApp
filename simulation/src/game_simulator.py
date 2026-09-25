@@ -215,17 +215,8 @@ class GameSimulator:
         home_strikeouts = 0
         total_pitches = 0
 
-        # Get pitcher stats
-        away_pitcher_stats = {
-            'fastball_pct': 0.60,
-            'breaking_pct': 0.25,
-            'changeup_pct': 0.15,
-        }
-        home_pitcher_stats = {
-            'fastball_pct': 0.55,
-            'breaking_pct': 0.30,
-            'changeup_pct': 0.15,
-        }
+        away_pitcher_stats = self._get_pitcher_stats(away_pitchers[0])
+        home_pitcher_stats = self._get_pitcher_stats(home_pitchers[0])
 
         # Simulate 9 innings
         for inning in range(1, 10):
@@ -279,13 +270,7 @@ class GameSimulator:
 
         while outs < 3:
             batter = lineup[batter_idx % 9]
-            batter_stats = {
-                'contact_rate': 0.75,
-                'chase_rate': 0.30,
-                'gb_rate': 0.45,
-                'ld_rate': 0.20,
-                'fb_rate': 0.35,
-            }
+            batter_stats = self._get_batter_stats(batter)
 
             # Simulate at-bat
             result, pitch_count, rbi = self.ab_simulator.simulate_at_bat(
@@ -324,6 +309,40 @@ class GameSimulator:
             batter_idx += 1
 
         return runs, hits, strikeouts, total_pitches
+
+    def _get_pitcher_stats(self, pitcher: Dict) -> Dict:
+        """Load a pitcher's Statcast profile, falling back only when unavailable."""
+        default_stats = {
+            'fastball_pct': 0.60,
+            'breaking_pct': 0.25,
+            'changeup_pct': 0.15,
+        }
+
+        if self.bvp_model is None:
+            return default_stats
+
+        stats = self.bvp_model.data_loader.get_pitcher_stats(
+            pitcher['pitcher_id']
+        )
+        return stats or default_stats
+
+    def _get_batter_stats(self, batter: Dict) -> Dict:
+        """Load a batter's Statcast profile, falling back only when unavailable."""
+        default_stats = {
+            'contact_rate': 0.75,
+            'chase_rate': 0.30,
+            'gb_rate': 0.45,
+            'ld_rate': 0.20,
+            'fb_rate': 0.35,
+        }
+
+        if self.bvp_model is None:
+            return default_stats
+
+        stats = self.bvp_model.data_loader.get_batter_stats(
+            batter['batter_id']
+        )
+        return stats or default_stats
 
     def simulate_games_monte_carlo(self, away_team: Dict, home_team: Dict,
                                    away_pitchers: List[Dict], home_pitchers: List[Dict],

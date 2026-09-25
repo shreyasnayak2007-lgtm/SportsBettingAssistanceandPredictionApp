@@ -26,4 +26,15 @@ python main.py
 ### 3. View Results
 Results are printed to console and saved to `prediction_YYYYMMDD_HHMMSS.json`
 
+Statcast responses are cached in `simulation/data` by default. Season downloads run
+one month at a time with multiprocessing disabled, and each completed month is saved
+immediately as `statcast_<year>_<month>.pkl`. If the process is interrupted, rerun
+`python main.py` and completed months will be reused.
+
+Before running `python main.py`, the simulation loads today's real game from the
+backend at `http://localhost:8000/api/v1` when a complete roster is available. If the
+backend is unavailable or incomplete, it uses MLB's public schedule and boxscore API.
+Set `SPORTS_BETTING_API_URL` to use a different backend URL. Game inputs and processed
+Statcast seasons are persisted in `simulation/data` for later runs.
+
 ## Example Output
