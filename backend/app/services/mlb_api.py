@@ -30,3 +30,14 @@ def get_mlb_games(start_date: str, end_date: str):
     response.raise_for_status()
 
     return response.json()
+
+
+def get_mlb_live_game(game_pk: int):
+    response = requests.get(
+        f"{MLB_API_BASE_URL.rsplit('/v1', 1)[0]}/v1.1/game/{game_pk}/feed/live",
+        timeout=10,
+    )
+
+    response.raise_for_status()
+
+    return response.json()

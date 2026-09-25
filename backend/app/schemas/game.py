@@ -8,6 +8,8 @@ class GameTeamResponse(BaseModel):
     mlb_team_id: int
     abbreviation: str
     name: str
+    league: str | None
+    division: str | None
     score: int | None
 
 
