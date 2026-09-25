@@ -1,6 +1,6 @@
 import pandas as pd
 from pybaseball import statcast, cache
-from pybaseball import batting_stats
+import requests
 
 
 cache.enable()
@@ -61,24 +61,28 @@ def clean_statcast_data(data: pd.DataFrame) -> pd.DataFrame:
 
     return cleaned
 
-def fetch_batting_stats_2026():
-    print("Fetching 2026 batting stats...")
 
-    data = batting_stats(
-        2026,
-        2026,
-        qual=0
+def fetch_batting_stats_2026():
+    response = requests.get(
+        "https://statsapi.mlb.com/api/v1/stats",
+        params={
+            "stats": "season",
+            "group": "hitting",
+            "season": 2026,
+            "sportIds": 1,
+            "playerPool": "ALL",
+            "limit": 2000,
+        },
+        timeout=(10, 60),
     )
 
-    print(f"\nRows: {len(data)}")
+    response.raise_for_status()
 
-    print("\nColumns:")
-    print(data.columns.tolist())
+    data = response.json()
 
-    print("\nFirst 10 rows:")
-    print(data.head(10))
+    stats_groups = data.get("stats", [])
 
-    return data
+    if not stats_groups:
+        return []
 
-if __name__ == "__main__":
-    fetch_batting_stats_2026()
+    return stats_groups[0].get("splits", [])
