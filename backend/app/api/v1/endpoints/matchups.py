@@ -232,6 +232,15 @@ def get_matchup_detail(
             detail=f"Game {game_pk} not found"
         )
 
+    home_team = db.query(Team).filter(Team.id == game.home_team_id).first()
+    away_team = db.query(Team).filter(Team.id == game.away_team_id).first()
+
+    if home_team is None or away_team is None:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Teams for game {game_pk} could not be loaded"
+        )
+
     # ========================================================
     # BUILD LINEUPS
     # ========================================================
@@ -239,7 +248,7 @@ def get_matchup_detail(
     # Home batters hitting against away pitcher(s)
     home_lineup = _build_lineup(
         batting_team_id=game.home_team_id,
-        pitching_team=game.away_team,
+        pitching_team=away_team,
         game_date=game.game_date,
         db=db
     )
@@ -247,7 +256,7 @@ def get_matchup_detail(
     # Away batters hitting against home pitcher(s)
     away_lineup = _build_lineup(
         batting_team_id=game.away_team_id,
-        pitching_team=game.home_team,
+        pitching_team=home_team,
         game_date=game.game_date,
         db=db
     )
@@ -257,14 +266,14 @@ def get_matchup_detail(
     # ========================================================
 
     ballpark_name = BALLPARK_NAMES.get(
-        game.home_team_id,
-        f"{game.home_team.name} Stadium"
+        home_team.mlb_team_id,
+        f"{home_team.name} Stadium"
     )
 
     # Ballpark factor: 1.0 is neutral
     # > 1.0 favors hitters (higher scoring)
     # < 1.0 favors pitchers (lower scoring)
-    ballpark_factor = _get_ballpark_factor(game.home_team_id)
+    ballpark_factor = _get_ballpark_factor(home_team.mlb_team_id)
 
     # ========================================================
     # RETURN RESPONSE
@@ -273,8 +282,8 @@ def get_matchup_detail(
     return MatchupResponse(
         gamePk=game.game_pk,
         gameDate=game.game_date,
-        awayTeam=game.away_team.abbreviation,
-        homeTeam=game.home_team.abbreviation,
+        awayTeam=away_team.abbreviation,
+        homeTeam=home_team.abbreviation,
         ballparkName=ballpark_name,
         ballparkFactor=ballpark_factor,
         homePitcher=None,  # TODO: wire when pitcher data available
@@ -351,7 +360,7 @@ def _build_lineup(
                 mlbamId=batter.mlbam_id,
                 name=f"{batter.first_name} {batter.last_name}".strip(),
                 position=batter.position or "DH",
-                handedness=batter.handedness or "R",
+                handedness=batter.bat_side or "R",
                 jerseyNumber=batter.jersey_number or 0,
                 bvpStats=bvp_stats,
                 rollingTrends=rolling_trends,

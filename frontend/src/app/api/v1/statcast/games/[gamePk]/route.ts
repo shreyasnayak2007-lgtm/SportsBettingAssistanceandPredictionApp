@@ -2,11 +2,15 @@ import { NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+type RouteContext = {
+  params: { gamePk: string }
+}
+
+export async function GET(_request: Request, { params }: RouteContext) {
   const backendUrl = process.env.BACKEND_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:8000'
 
   try {
-    const response = await fetch(`${backendUrl}/api/v1/games/today`, {
+    const response = await fetch(`${backendUrl}/api/v1/statcast/games/${params.gamePk}`, {
       cache: 'no-store',
       signal: AbortSignal.timeout(12_000),
     })
@@ -14,7 +18,7 @@ export async function GET() {
     return NextResponse.json(body, { status: response.status })
   } catch {
     return NextResponse.json(
-      { detail: 'Backend API is unavailable. Start the FastAPI service or configure BACKEND_API_URL.' },
+      { detail: 'Backend API is unavailable.' },
       { status: 503 },
     )
   }

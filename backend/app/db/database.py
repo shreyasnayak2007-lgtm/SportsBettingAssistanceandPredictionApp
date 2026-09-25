@@ -6,7 +6,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 load_dotenv()
 
-DATABASE_URL = os.getenv('DATABASE_URL') or os.getenv('POSTGRES_URL')
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./sports_betting.db")
 engine = create_engine(DATABASE_URL, pool_pre_ping=True) if DATABASE_URL else None
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

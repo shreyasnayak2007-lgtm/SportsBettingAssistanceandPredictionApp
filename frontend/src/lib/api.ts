@@ -11,13 +11,35 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? ''
 // ============================================================
 
 export type LiveGame = {
+  id: number
   gamePk: number
+  gameDate: string
+  season: number
+  gameDatetime: string | null
   awayTeam: string
   homeTeam: string
+  awayTeamName: string
+  homeTeamName: string
+  awayTeamId: number
+  homeTeamId: number
+  awayMlbTeamId: number
+  homeMlbTeamId: number
+  awayLeague: string | null
+  homeLeague: string | null
+  awayDivision: string | null
+  homeDivision: string | null
   awayTeamLogo?: string
   homeTeamLogo?: string
   status: 'upcoming' | 'live' | 'final'
+  statusLabel: string
   inning?: number
+  inningState?: string | null
+  outs?: number | null
+  runners: {
+    first: boolean
+    second: boolean
+    third: boolean
+  }
   awayScore: number
   homeScore: number
   time: string
@@ -112,8 +134,13 @@ export class ApiError extends Error {
 // HELPER FUNCTIONS
 // ============================================================
 
+export function parseBackendDateTime(value: string): Date {
+  const hasTimezone = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(value)
+  return new Date(hasTimezone ? value : `${value}Z`)
+}
+
 function formatGameTime(value: unknown): string {
-  const parsed = new Date(String(value ?? ''))
+  const parsed = parseBackendDateTime(String(value ?? ''))
   if (Number.isNaN(parsed.getTime())) return 'Time unavailable'
   return new Intl.DateTimeFormat(undefined, {
     hour: 'numeric',
@@ -154,9 +181,7 @@ export async function fetchTodayGames(): Promise<LiveGame[]> {
   const payload = await response.json()
 
   // Handle different response formats
-  const records = Array.isArray(payload)
-    ? payload
-    : payload.data ?? payload.games
+  const records = payload.data || (Array.isArray(payload) ? payload : [])
 
   if (!Array.isArray(records)) {
     throw new ApiError('Games API returned an unexpected response')

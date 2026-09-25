@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { GameDetailView } from '@/components/dashboard/GameDetailView'
+import { PropDetailView, PropsSection, type PropCard } from '@/components/dashboard/CheatsheetSection'
 import {
   ArrowRight,
   BarChart3,
@@ -18,6 +19,9 @@ import {
   Sun,
   Moon,
 } from 'lucide-react'
+
+import { parseBackendDateTime, type LiveGame } from '@/lib/api'
+import { mapBackendGamesList } from '@/lib/mappers'
 
 const teamLogos: Record<string, { label: string; url: string }> = {
   CLE: { label: 'Cleveland Guardians', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/114.svg' },
@@ -37,6 +41,7 @@ const teamLogos: Record<string, { label: string; url: string }> = {
   PIT: { label: 'Pittsburgh Pirates', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/134.svg' },
   CWS: { label: 'Chicago White Sox', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/145.svg' },
   ARI: { label: 'Arizona Diamondbacks', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/109.svg' },
+  AZ: { label: 'Arizona Diamondbacks', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/109.svg' },
   KC: { label: 'Kansas City Royals', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/118.svg' },
   LAD: { label: 'Los Angeles Dodgers', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/119.svg' },
   SD: { label: 'San Diego Padres', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/135.svg' },
@@ -48,6 +53,7 @@ const teamLogos: Record<string, { label: string; url: string }> = {
   CHC: { label: 'Chicago Cubs', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/112.svg' },
   TEX: { label: 'Texas Rangers', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/140.svg' },
   OAK: { label: 'Oakland Athletics', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/133.svg' },
+  ATH: { label: 'Athletics', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/133.svg' },
   SEA: { label: 'Seattle Mariners', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/136.svg' },
   TOR: { label: 'Toronto Blue Jays', url: 'https://www.mlbstatic.com/team-logos/team-cap-on-light/141.svg' },
 }
@@ -78,10 +84,19 @@ function Market({ label, value }: { label: string; value: string }) {
   )
 }
 
+function formatGameTime(value: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone: 'America/New_York',
+  }).format(parseBackendDateTime(value))
+}
+
 export default function Dashboard() {
-  const [games, setGames] = useState([])
+  const [games, setGames] = useState<LiveGame[]>([])
   const [loading, setLoading] = useState(true)
   const [detailGame, setDetailGame] = useState<any>(null)
+  const [detailProp, setDetailProp] = useState<PropCard | null>(null)
   const [stake, setStake] = useState('100')
   const [odds, setOdds] = useState('-110')
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -90,25 +105,33 @@ export default function Dashboard() {
   const [answer, setAnswer] = useState('Ask about today\'s matchups, trends, or how to read a market.')
 
   // Fetch real games on mount
-  useEffect(() => {
-  async function loadGames() {
+useEffect(() => {
+  async function fetchData() {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/games/today`,
-        { cache: 'no-store' }
-      )
-      const data = await response.json()
-      setGames(data.data || [])
-    } catch (err) {
-      console.error('Failed to load games:', err)
+      const response = await fetch('/api/v1/games/today', { cache: 'no-store' })
+      if (response.ok) {
+        const rawData = await response.json()
+        console.log('rawData:', rawData)
+        
+        const gameList = Array.isArray(rawData) ? rawData : rawData.games || rawData.data || []
+        console.log('gameList length:', gameList.length)
+        
+        const mappedGames = mapBackendGamesList(gameList)
+        console.log('mappedGames length:', mappedGames.length)
+        console.log('mappedGames:', mappedGames)
+        
+        setGames(mappedGames)
+      } else {
+        console.error('API response error status:', response.status)
+      }
+    } catch (error) {
+      console.error('Failed to load games:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
-  loadGames()
-
-  // Refresh every 10 seconds
-  const interval = setInterval(loadGames, 10000)
-  return () => clearInterval(interval)
+  fetchData()
 }, [])
 
   const todayLabel = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date())
@@ -126,6 +149,14 @@ export default function Dashboard() {
     return (
       <div className={`${isLightMode ? 'light' : 'dark'} min-h-screen bg-background text-foreground`}>
         <GameDetailView game={detailGame} teamLogos={teamLogos} onBack={() => setDetailGame(null)} />
+      </div>
+    )
+  }
+
+  if (detailProp) {
+    return (
+      <div className={`${isLightMode ? 'light' : 'dark'} min-h-screen bg-background text-foreground`}>
+        <PropDetailView prop={detailProp} onBack={() => setDetailProp(null)} />
       </div>
     )
   }
@@ -217,11 +248,11 @@ export default function Dashboard() {
                     <div className="flex items-center gap-2">
                       <Clock3 className="size-4 text-muted-foreground" />
                       <span className="text-sm font-semibold">
-                        {new Date(game.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {formatGameTime(game.time)} ET
                       </span>
                     </div>
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${game.status === 'live' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                      {game.status === 'live' ? `Live - Inning ${game.inning || 1}` : 'Upcoming'}
+                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${game.status === 'live' ? 'bg-red-100 text-red-700' : game.status === 'final' ? 'bg-muted text-muted-foreground' : 'bg-green-100 text-green-700'}`}>
+                      {game.status === 'live' ? `Live - Inning ${game.inning || 1}` : game.statusLabel}
                     </span>
                   </div>
 
@@ -229,31 +260,45 @@ export default function Dashboard() {
                     {/* Away Team */}
                     <div className="flex flex-col items-center gap-2">
                       <TeamLogo team={game.awayTeam} size="size-12" />
-                      <span className="text-sm font-semibold">{game.awayTeam}</span>
+                      <span className="text-center text-sm font-semibold">{game.awayTeamName}</span>
                       <span className="text-2xl font-bold">{game.awayScore}</span>
                     </div>
 
                     {/* Home Team */}
                     <div className="flex flex-col items-center gap-2">
                       <TeamLogo team={game.homeTeam} size="size-12" />
-                      <span className="text-sm font-semibold">{game.homeTeam}</span>
+                      <span className="text-center text-sm font-semibold">{game.homeTeamName}</span>
                       <span className="text-2xl font-bold">{game.homeScore}</span>
                     </div>
                   </div>
 
-                  {/* Markets - Mock Data */}
+                  <div className="mb-4 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                    <span>{game.season} season</span>
+                    <span className="text-right">{game.homeDivision || 'Division unavailable'}</span>
+                    {game.status === 'live' && <span>{game.inningState || 'In progress'} {game.inning || ''}</span>}
+                    {game.status === 'live' && <span className="text-right">{game.outs ?? 0} outs</span>}
+                  </div>
+
+                  {game.status === 'live' && (
+                    <div className="mb-4 flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2 text-xs">
+                      <span className="font-semibold">Runners</span>
+                      <span>1B {game.runners.first ? 'occupied' : 'open'} · 2B {game.runners.second ? 'occupied' : 'open'} · 3B {game.runners.third ? 'occupied' : 'open'}</span>
+                    </div>
+                  )}
+
+                  {/* Backend does not provide betting markets */}
                   <div className="space-y-2 border-t border-border pt-4">
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">SPREAD:</span>
-                      <span className="font-semibold text-yellow-600">{game.odds.spread}</span>
+                      <span className="font-semibold text-muted-foreground">Not available</span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">O/U:</span>
-                      <span className="font-semibold text-yellow-600">{game.odds.overUnder}</span>
+                      <span className="font-semibold text-muted-foreground">Not available</span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">ML:</span>
-                      <span className="font-semibold text-yellow-600">{game.odds.moneyline}</span>
+                      <span className="font-semibold text-muted-foreground">Not available</span>
                     </div>
                   </div>
                 </div>
@@ -261,6 +306,8 @@ export default function Dashboard() {
             )}
           </div>
         </section>
+
+        <PropsSection onSelect={setDetailProp} />
 
         <section id="trending" className="mb-10 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
