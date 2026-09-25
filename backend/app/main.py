@@ -5,11 +5,9 @@ from fastapi import FastAPI
 from app.api.v1.endpoints.statcast import router as statcast_router
 from app.api.v1.endpoints.teams import router as teams_router
 from app.api.v1.endpoints.games import router as games_router
-<<<<<<< HEAD
 from app.api.v1.endpoints import teams, games, players, batting, pitching
-=======
 from app.api.v1.endpoints import teams, games, matchups, players, batting
->>>>>>> 5690751d4323b31ad143a29e7f3e51710b530eb3
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
