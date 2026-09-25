@@ -86,3 +86,28 @@ def fetch_batting_stats_2026():
         return []
 
     return stats_groups[0].get("splits", [])
+
+def fetch_pitching_stats_2026():
+    response = requests.get(
+        "https://statsapi.mlb.com/api/v1/stats",
+        params={
+            "stats": "season",
+            "group": "pitching",
+            "season": 2026,
+            "sportIds": 1,
+            "playerPool": "ALL",
+            "limit": 2000,
+        },
+        timeout=(10, 60),
+    )
+
+    response.raise_for_status()
+
+    data = response.json()
+
+    stats_groups = data.get("stats", [])
+
+    if not stats_groups:
+        return []
+
+    return stats_groups[0].get("splits", [])

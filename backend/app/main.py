@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from app.api.v1.endpoints.statcast import router as statcast_router
 from app.api.v1.endpoints.teams import router as teams_router
 from app.api.v1.endpoints.games import router as games_router
-from app.api.v1.endpoints import teams, games, players, batting
+from app.api.v1.endpoints import teams, games, players, batting, pitching
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -54,6 +54,12 @@ app.include_router(
     batting.router,
     prefix="/api/v1/batting",
     tags=["batting"],
+)
+
+app.include_router(
+    pitching.router,
+    prefix="/api/v1/pitching",
+    tags=["pitching"],
 )
 
 @app.get("/")

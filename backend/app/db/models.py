@@ -140,6 +140,69 @@ class BattingSeasonStat(Base):
         ),
     )
 
+class PitchingSeasonStat(Base):
+    __tablename__ = "pitching_season_stats"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    player_id = Column(
+        Integer,
+        ForeignKey("players.id"),
+        nullable=False,
+        index=True
+    )
+
+    season = Column(Integer, nullable=False, index=True)
+
+    games = Column(Integer, nullable=True)
+    games_started = Column(Integer, nullable=True)
+
+    wins = Column(Integer, nullable=True)
+    losses = Column(Integer, nullable=True)
+
+    saves = Column(Integer, nullable=True)
+    save_opportunities = Column(Integer, nullable=True)
+
+    # MLB returns innings pitched as baseball notation such as "123.2",
+    # where .2 means 2 outs, not 0.2 innings.
+    innings_pitched = Column(String(10), nullable=True)
+
+    hits_allowed = Column(Integer, nullable=True)
+    runs_allowed = Column(Integer, nullable=True)
+    earned_runs = Column(Integer, nullable=True)
+    home_runs_allowed = Column(Integer, nullable=True)
+
+    walks = Column(Integer, nullable=True)
+    strikeouts = Column(Integer, nullable=True)
+
+    batters_faced = Column(Integer, nullable=True)
+    hit_batters = Column(Integer, nullable=True)
+    wild_pitches = Column(Integer, nullable=True)
+    balks = Column(Integer, nullable=True)
+
+    era = Column(Float, nullable=True)
+    whip = Column(Float, nullable=True)
+
+    strikeouts_per_9 = Column(Float, nullable=True)
+    walks_per_9 = Column(Float, nullable=True)
+    hits_per_9 = Column(Float, nullable=True)
+    home_runs_per_9 = Column(Float, nullable=True)
+
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "player_id",
+            "season",
+            name="uq_pitching_player_season"
+        ),
+    )
+
 class Game(Base):
     __tablename__ = "games"
 
