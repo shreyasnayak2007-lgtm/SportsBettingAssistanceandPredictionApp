@@ -1,0 +1,67 @@
+{
+  "timestamp": "2026-09-25T14:38:19.177655",
+  "away_team": "Chicago Cubs",
+  "home_team": "Boston Red Sox",
+  "away_pitcher": "Aaron Civale",
+  "home_pitcher": "Alec Gamboa",
+  "simulations": 1000,
+  "predictions": {
+    "away_win_pct": 0.048,
+    "home_win_pct": 0.952,
+    "away_win_count": 48,
+    "home_win_count": 952,
+    "avg_away_score": 0.295,
+    "avg_home_score": 2.573,
+    "avg_away_hits": 4.718,
+    "avg_home_hits": 8.507,
+    "avg_pitches_per_game": 196.723
+  },
+  "matchup_analysis": {
+    "away_lineup_vs_home_pitcher": [
+      {
+        "batter": "Alex Bregman",
+        "hit_prob": 0.27,
+        "k_prob": 0.2,
+        "walk_prob": 0.08,
+        "confidence": 0.0
+      },
+      {
+        "batter": "Carson Kelly",
+        "hit_prob": 0.27,
+        "k_prob": 0.2,
+        "walk_prob": 0.08,
+        "confidence": 0.0
+      },
+      {
+        "batter": "Dansby Swanson",
+        "hit_prob": 0.27,
+        "k_prob": 0.2,
+        "walk_prob": 0.08,
+        "confidence": 0.0
+      }
+    ],
+    "home_lineup_vs_away_pitcher": [
+      {
+        "batter": "Roman Anthony",
+        "hit_prob": 0.27,
+        "k_prob": 0.2,
+        "walk_prob": 0.08,
+        "confidence": 0.0
+      },
+      {
+        "batter": "Mickey Gasper",
+        "hit_prob": 0.27,
+        "k_prob": 0.2,
+        "walk_prob": 0.08,
+        "confidence": 0.0
+      },
+      {
+        "batter": "Adley Rutschman",
+        "hit_prob": 0.2772814977054652,
+        "k_prob": 0.17303479185123724,
+        "walk_prob": 0.10890380297469215,
+        "confidence": 0.03989361702127659
+      }
+    ]
+  }
+}

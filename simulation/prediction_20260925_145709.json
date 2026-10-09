@@ -1,0 +1,67 @@
+{
+  "timestamp": "2026-09-25T14:57:09.238747",
+  "away_team": "Baltimore Orioles",
+  "home_team": "New York Yankees",
+  "away_pitcher": "Albert Su\u00e1rez",
+  "home_pitcher": "Brent Headrick",
+  "simulations": 1000,
+  "predictions": {
+    "away_win_pct": 0.472,
+    "home_win_pct": 0.528,
+    "away_win_count": 472,
+    "home_win_count": 528,
+    "avg_away_score": 2.091,
+    "avg_home_score": 1.654,
+    "avg_away_hits": 6.862,
+    "avg_home_hits": 6.966,
+    "avg_pitches_per_game": 202.01
+  },
+  "matchup_analysis": {
+    "away_lineup_vs_home_pitcher": [
+      {
+        "batter": "Carlos Narv\u00e1ez",
+        "hit_prob": 0.2650130548302872,
+        "k_prob": 0.26149829282988546,
+        "walk_prob": 0.08433755104773381,
+        "confidence": 0.0
+      },
+      {
+        "batter": "Christian Encarnacion-Strand",
+        "hit_prob": 0.27510316368638243,
+        "k_prob": 0.26300567841145556,
+        "walk_prob": 0.07895695928708309,
+        "confidence": 0.0
+      },
+      {
+        "batter": "Christian Franklin",
+        "hit_prob": 0.27,
+        "k_prob": 0.2,
+        "walk_prob": 0.08,
+        "confidence": 0.0
+      }
+    ],
+    "home_lineup_vs_away_pitcher": [
+      {
+        "batter": "Ali S\u00e1nchez",
+        "hit_prob": 0.27,
+        "k_prob": 0.2,
+        "walk_prob": 0.08,
+        "confidence": 0.0
+      },
+      {
+        "batter": "Amed Rosario",
+        "hit_prob": 0.27,
+        "k_prob": 0.2,
+        "walk_prob": 0.08,
+        "confidence": 0.0
+      },
+      {
+        "batter": "Anthony Volpe",
+        "hit_prob": 0.27,
+        "k_prob": 0.2,
+        "walk_prob": 0.08,
+        "confidence": 0.0
+      }
+    ]
+  }
+}

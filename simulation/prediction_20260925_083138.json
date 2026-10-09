@@ -1,0 +1,66 @@
+{
+  "timestamp": "2026-09-25T08:31:38.844295",
+  "away_team": "Los Angeles Dodgers",
+  "home_team": "San Diego Padres",
+  "away_pitcher": "Clayton Kershaw",
+  "home_pitcher": "Starting Pitcher",
+  "simulations": 1000,
+  "predictions": {
+    "away_win_pct": 0.663,
+    "home_win_pct": 0.337,
+    "away_win_count": 663,
+    "home_win_count": 337,
+    "avg_away_score": 38.106,
+    "avg_home_score": 34.163,
+    "avg_away_hits": 9.142,
+    "avg_home_hits": 8.072
+  },
+  "matchup_analysis": {
+    "away_lineup_vs_home_pitcher": [
+      {
+        "batter": "Mike Trout",
+        "hit_prob": 0.27,
+        "k_prob": 0.2,
+        "walk_prob": 0.08,
+        "confidence": 0.0
+      },
+      {
+        "batter": "Player 2",
+        "hit_prob": 0.27499551247531856,
+        "k_prob": 0.22160567535295356,
+        "walk_prob": 0.09173801180544172,
+        "confidence": 0.10770059235325795
+      },
+      {
+        "batter": "Player 3",
+        "hit_prob": 0.27,
+        "k_prob": 0.2,
+        "walk_prob": 0.08,
+        "confidence": 0.0
+      }
+    ],
+    "home_lineup_vs_away_pitcher": [
+      {
+        "batter": "Manny Machado",
+        "hit_prob": 0.27,
+        "k_prob": 0.2,
+        "walk_prob": 0.08,
+        "confidence": 0.0
+      },
+      {
+        "batter": "Player 2",
+        "hit_prob": 0.27,
+        "k_prob": 0.2,
+        "walk_prob": 0.08,
+        "confidence": 0.0
+      },
+      {
+        "batter": "Player 3",
+        "hit_prob": 0.27,
+        "k_prob": 0.2,
+        "walk_prob": 0.08,
+        "confidence": 0.0
+      }
+    ]
+  }
+}

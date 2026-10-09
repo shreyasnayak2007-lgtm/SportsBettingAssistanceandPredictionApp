@@ -1,0 +1,313 @@
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Float,
+    Date,
+    DateTime,
+    Boolean,
+    JSON,
+    ForeignKey,
+    UniqueConstraint
+)
+from sqlalchemy.sql import func
+
+from app.db.database import Base
+
+
+class Team(Base):
+    __tablename__ = "teams"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    mlb_team_id = Column(
+        Integer,
+        unique=True,
+        nullable=False,
+        index=True
+    )
+
+    abbreviation = Column(
+        String(5),
+        unique=True,
+        nullable=False,
+        index=True
+    )
+
+    name = Column(String(100), nullable=False)
+    league = Column(String(50))
+    division = Column(String(50))
+
+
+class Player(Base):
+    __tablename__ = "players"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    # Official MLB player ID
+    mlbam_id = Column(Integer, unique=True, nullable=False, index=True)
+
+    first_name = Column(String(50), nullable=True)
+    last_name = Column(String(50), nullable=True)
+    full_name = Column(String(100), nullable=True)
+
+    position = Column(String(20), nullable=True)
+
+    # String instead of Integer so values such as "00" are preserved
+    jersey_number = Column(String(3), nullable=True)
+
+    # Batting side: L, R, S
+    bat_side = Column(String(1), nullable=True)
+
+    # Throwing hand: L, R
+    pitch_hand = Column(String(1), nullable=True)
+
+    team_id = Column(
+        Integer,
+        ForeignKey("teams.id"),
+        nullable=True
+    )
+
+    active = Column(Boolean, nullable=True)
+
+    birth_date = Column(Date, nullable=True)
+    height = Column(String(10), nullable=True)
+    weight = Column(Integer, nullable=True)
+
+    mlb_debut_date = Column(Date, nullable=True)
+
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False
+    )
+
+class BattingSeasonStat(Base):
+    __tablename__ = "batting_season_stats"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    player_id = Column(
+        Integer,
+        ForeignKey("players.id"),
+        nullable=False,
+        index=True
+    )
+
+    season = Column(Integer, nullable=False, index=True)
+
+    # FanGraphs player ID from pybaseball
+    fangraphs_id = Column(Integer, nullable=True, index=True)
+
+    games = Column(Integer, nullable=True)
+    plate_appearances = Column(Integer, nullable=True)
+    at_bats = Column(Integer, nullable=True)
+
+    runs = Column(Integer, nullable=True)
+    hits = Column(Integer, nullable=True)
+    singles = Column(Integer, nullable=True)
+    doubles = Column(Integer, nullable=True)
+    triples = Column(Integer, nullable=True)
+    home_runs = Column(Integer, nullable=True)
+
+    rbi = Column(Integer, nullable=True)
+    walks = Column(Integer, nullable=True)
+    strikeouts = Column(Integer, nullable=True)
+
+    stolen_bases = Column(Integer, nullable=True)
+    caught_stealing = Column(Integer, nullable=True)
+
+    batting_average = Column(Float, nullable=True)
+    on_base_percentage = Column(Float, nullable=True)
+    slugging_percentage = Column(Float, nullable=True)
+    ops = Column(Float, nullable=True)
+
+    woba = Column(Float, nullable=True)
+    wrc_plus = Column(Float, nullable=True)
+    war = Column(Float, nullable=True)
+    raw_data = Column(JSON)
+
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "player_id",
+            "season",
+            name="uq_batting_player_season"
+        ),
+    )
+
+
+class PitchingSeasonStat(Base):
+    __tablename__ = "pitching_season_stats"
+
+    id = Column(Integer, primary_key=True, index=True)
+    player_id = Column(Integer, ForeignKey("players.id"), nullable=False, index=True)
+    season = Column(Integer, nullable=False, index=True)
+
+    games = Column(Integer, nullable=True)
+    games_started = Column(Integer, nullable=True)
+    wins = Column(Integer, nullable=True)
+    losses = Column(Integer, nullable=True)
+    saves = Column(Integer, nullable=True)
+    holds = Column(Integer, nullable=True)
+    pitches = Column(Integer, nullable=True)
+    innings_outs = Column(Integer, nullable=True)
+    singles_allowed = Column(Integer, nullable=True)
+    doubles_allowed = Column(Integer, nullable=True)
+    triples_allowed = Column(Integer, nullable=True)
+    hits_allowed = Column(Integer, nullable=True)
+    runs_allowed = Column(Integer, nullable=True)
+    earned_runs = Column(Integer, nullable=True)
+    home_runs_allowed = Column(Integer, nullable=True)
+    walks = Column(Integer, nullable=True)
+    strikeouts = Column(Integer, nullable=True)
+    hit_batters = Column(Integer, nullable=True)
+    batters_faced = Column(Integer, nullable=True)
+    era = Column(Float, nullable=True)
+    whip = Column(Float, nullable=True)
+    batting_average_against = Column(Float, nullable=True)
+    strikeouts_per_nine = Column(Float, nullable=True)
+    walks_per_nine = Column(Float, nullable=True)
+    hits_per_nine = Column(Float, nullable=True)
+    home_runs_per_nine = Column(Float, nullable=True)
+    raw_data = Column(JSON)
+
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    __table_args__ = (
+        UniqueConstraint("player_id", "season", name="uq_pitching_player_season"),
+    )
+
+class Game(Base):
+    __tablename__ = "games"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    game_pk = Column(
+        Integer,
+        unique=True,
+        nullable=False,
+        index=True
+    )
+
+    game_date = Column(
+        Date,
+        nullable=False,
+        index=True
+    )
+
+    # Exact scheduled start time from MLB.
+    # Stored with timezone information.
+    game_datetime = Column(
+        DateTime(timezone=True),
+        nullable=True
+    )
+
+    season = Column(
+        Integer,
+        nullable=False
+    )
+
+    home_team_id = Column(
+        Integer,
+        ForeignKey("teams.id")
+    )
+
+    away_team_id = Column(
+        Integer,
+        ForeignKey("teams.id")
+    )
+
+    home_score = Column(Integer)
+    away_score = Column(Integer)
+
+    status = Column(String(30))
+
+    # Live game information
+    current_inning = Column(Integer)
+    inning_state = Column(String(20))
+    outs = Column(Integer)
+
+    runner_on_first = Column(
+        Boolean,
+        default=False
+    )
+
+    runner_on_second = Column(
+        Boolean,
+        default=False
+    )
+
+    runner_on_third = Column(
+        Boolean,
+        default=False
+    )
+
+
+class StatcastPitch(Base):
+    __tablename__ = "statcast_pitches"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    game_pk = Column(Integer, nullable=False, index=True)
+    game_date = Column(Date, nullable=False, index=True)
+
+    home_team = Column(String(5))
+    away_team = Column(String(5))
+
+    inning = Column(Integer)
+    inning_topbot = Column(String(10))
+
+    at_bat_number = Column(Integer, nullable=False)
+    pitch_number = Column(Integer, nullable=False)
+
+    # These are MLBAM player IDs from Statcast
+    pitcher_id = Column(Integer, index=True)
+    batter_id = Column(Integer, index=True)
+
+    pitch_type = Column(String(10))
+    release_speed = Column(Float)
+    release_spin_rate = Column(Float)
+    release_extension = Column(Float)
+    plate_x = Column(Float)
+    plate_z = Column(Float)
+    zone = Column(Integer)
+    stand = Column(String(1))
+    p_throws = Column(String(1))
+
+    balls = Column(Integer)
+    strikes = Column(Integer)
+
+    events = Column(String(50))
+    description = Column(String(100))
+
+    launch_speed = Column(Float)
+    launch_angle = Column(Float)
+    launch_speed_angle = Column(Integer)
+    hit_distance_sc = Column(Float)
+    estimated_ba = Column(Float)
+
+    estimated_woba = Column(Float)
+    barrel = Column(Boolean)
+    raw_data = Column(JSON)
+
+    __table_args__ = (
+        UniqueConstraint(
+            "game_pk",
+            "at_bat_number",
+            "pitch_number",
+            name="unique_pitch"
+        ),
+    )

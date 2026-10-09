@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 240 12% 5%;
+  --foreground: 42 18% 94%;
+  --card: 240 10% 9%;
+  --card-foreground: 42 18% 94%;
+  --muted: 232 12% 14%;
+  --muted-foreground: 224 10% 70%;
+  --border: 225 11% 22%;
+  --primary: 43 84% 62%;
+  --primary-foreground: 240 12% 5%;
+  --accent: 142 54% 46%;
+  --green: 142 54% 46%;
+}
+
+html.light,
+.light {
+  --background: 210 40% 98%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  --border: 214 32% 91%;
+  --primary: 221 83% 40%;
+  --primary-foreground: 210 40% 98%;
+  --accent: 221 83% 40%;
+}
+
+.dark,
+.light {
+  min-height: 100%;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+.dark .bg-background,
+.dark header {
+  background-color: hsl(var(--background)) !important;
+  color: hsl(var(--foreground));
+}
+
+.dark .bg-card,
+.dark .bg-muted,
+.dark [class*="bg-muted/"] {
+  background-color: hsl(var(--card)) !important;
+  color: hsl(var(--card-foreground)) !important;
+}
+
+.dark .games-today-card {
+  background: linear-gradient(145deg, #242936 0%, #1b1f2a 100%) !important;
+  color: #f7f4ec !important;
+  box-shadow: 0 14px 34px rgb(0 0 0 / 22%);
+}
+
+.dark .games-today-card .bg-muted,
+.dark .games-today-card [class*="bg-muted/"] {
+  background-color: #303644 !important;
+  color: #f7f4ec !important;
+}
+
+.dark .text-muted-foreground {
+  color: #aeb6c5 !important;
+}
+
+.dark .text-blue-950,
+.dark .text-indigo-700 {
+  color: #6fbe86 !important;
+}
+
+.dark .bg-card .text-foreground,
+.dark .bg-muted .text-foreground,
+.dark [class*="bg-muted/"] .text-foreground {
+  color: #f7f4ec !important;
+}
+
+.dark .games-today-card .text-foreground,
+.dark .games-today-card .text-muted-foreground {
+  color: #f7f4ec !important;
+}
+
+.dark .bg-card .border-border,
+.dark .bg-muted .border-border,
+.dark [class*="bg-muted/"] .border-border {
+  border-color: #2d3442 !important;
+}
+
+.dark .games-today-card .border-border {
+  border-color: #454d5d !important;
+}
+
+.light .bg-background,
+.light header {
+  background-color: hsl(var(--background)) !important;
+  color: hsl(var(--foreground));
+}
+
+* { box-sizing: border-box; }
+html { background: hsl(var(--background)); scroll-behavior: smooth; }
+body { margin: 0; min-width: 320px; background: hsl(var(--background)); color: hsl(var(--foreground)); font-family: Arial, Helvetica, sans-serif; line-height: 1.5; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+
+@layer base {
+  .bg-background { background-color: hsl(var(--background)); }
+  .bg-card { background-color: hsl(var(--card)); }
+  .bg-muted { background-color: hsl(var(--muted)); }
+  .bg-primary { background-color: hsl(var(--primary)); }
+  .text-foreground { color: hsl(var(--foreground)); }
+  .text-muted-foreground { color: hsl(var(--muted-foreground)); }
+  .text-primary { color: hsl(var(--primary)); }
+  .text-primary-foreground { color: hsl(var(--primary-foreground)); }
+  .border-border { border-color: hsl(var(--border)); }
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: hsl(var(--muted)); }
+::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 999px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .games-today-grid > * { animation: matchup-enter 420ms ease-out both; }
+  .games-today-grid > *:nth-child(2) { animation-delay: 40ms; }
+  .games-today-grid > *:nth-child(3) { animation-delay: 80ms; }
+  .games-today-grid > *:nth-child(4) { animation-delay: 120ms; }
+  .games-today-grid > *:nth-child(5) { animation-delay: 160ms; }
+  .games-today-grid > *:nth-child(6) { animation-delay: 200ms; }
+}
+
+@keyframes matchup-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.team-logo-fallback {
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--muted));
+}
+
+.dark .light-mode-only { display: none; }
+.light .dark-mode-only { display: none; }

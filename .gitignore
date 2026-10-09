@@ -141,3 +141,9 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+*.db
+*.sqlite3
+simulation/data/
+simulation.log
+prediction_*.json
